@@ -333,5 +333,129 @@ public class AdminController : ControllerBase
 
         return Ok("Appointment deleted");
     }
+    [HttpGet("products")]
+public IActionResult GetProducts()
+{
+    return Ok(_context.Products.ToList());
+}
+[HttpGet("ambulances")]
+public IActionResult GetAmbulances()
+{
+    var ambulances = _context.Ambulances
+        .Select(a => new
+        {
+            a.Id,
+            a.DriverName,
+            a.DriverPhone,
+            a.VehicleNumber,
+            a.UserId
+        })
+        .ToList();
 
+    return Ok(ambulances);
+}
+[HttpGet("appointments")]
+public IActionResult GetAppointments()
+{
+    var appointments = (
+        from a in _context.Appointments
+        join p in _context.Users on a.PatientId equals p.Id
+        join d in _context.Doctors on a.DoctorId equals d.Id
+        join du in _context.Users on d.UserId equals du.Id
+        select new
+        {
+            a.Id,
+            PatientName = p.FullName,
+            DoctorName = du.FullName,
+            a.Status,
+            a.BookedAt
+        }
+    ).ToList();
+
+    return Ok(appointments);
+}
+[HttpPut("appointment/cancel/{id}")]
+public IActionResult CancelAppointment(int id)
+{
+    var appointment = _context.Appointments.FirstOrDefault(x => x.Id == id);
+
+    if (appointment == null)
+        return NotFound("Appointment not found");
+
+    appointment.Status = "Cancelled";
+
+    _context.SaveChanges();
+
+    return Ok("Appointment cancelled");
+}
+[HttpDelete("ambulance/{id}")]
+public IActionResult DeleteAmbulance(int id)
+{
+    var ambulance = _context.Ambulances.FirstOrDefault(x => x.Id == id);
+
+    if (ambulance == null)
+        return NotFound("Ambulance not found");
+
+    _context.Ambulances.Remove(ambulance);
+
+    _context.SaveChanges();
+
+    return Ok("Ambulance deleted");
+}
+[HttpGet("ambulance-bookings")]
+public IActionResult GetAmbulanceBookings()
+{
+    var data = (
+        from r in _context.AmbulanceRequests
+        join p in _context.Users on r.UserId equals p.Id
+        join a in _context.Ambulances on r.AmbulanceId equals a.Id
+        select new
+        {
+            r.Id,
+            PatientName = p.FullName,
+            PatientEmail = p.Email,
+            a.DriverName,
+            a.VehicleNumber,
+            r.PickupLocation,
+            r.DestinationLocation,
+            r.Fare,
+            r.Status,
+            r.RequestTime
+        }
+    ).OrderByDescending(x => x.RequestTime).ToList();
+
+    return Ok(data);
+}
+[HttpGet("product-orders")]
+public IActionResult GetProductOrders()
+{
+    var data = (
+        from oi in _context.OrderItems
+        join o in _context.Orders on oi.OrderId equals o.Id
+        join u in _context.Users on o.UserId equals u.Id
+        join p in _context.Products on oi.ProductId equals p.Id
+
+        orderby o.OrderDate descending
+
+        select new
+        {
+            OrderId = o.Id,
+            CustomerName = u.FullName,
+            CustomerEmail = u.Email,
+
+            ProductName = p.Name,
+
+            oi.Quantity,
+            oi.UnitPrice,
+
+            Total = oi.Quantity * oi.UnitPrice,
+
+            o.Status,
+            o.OrderDate
+        }
+
+    ).ToList();
+
+    return Ok(data);
+}
 }

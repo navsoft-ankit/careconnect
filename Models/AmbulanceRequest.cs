@@ -15,4 +15,6 @@ public class AmbulanceRequest
     public DateTime RequestTime { get; set; } = DateTime.UtcNow;
 
     public string Status { get; set; } = "Pending";
+    public decimal Fare { get; set; }
+
 }
