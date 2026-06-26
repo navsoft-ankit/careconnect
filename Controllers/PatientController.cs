@@ -68,6 +68,12 @@ public class PatientController : ControllerBase
         if (slot.IsBooked)
             return BadRequest("Slot already booked");
 
+        if (string.IsNullOrWhiteSpace(dto.RazorpayPaymentId))
+            return BadRequest("Payment verification required before booking");
+
+        var doctor = _context.Doctors.FirstOrDefault(x => x.Id == slot.DoctorId);
+        var advanceAmount = doctor != null ? Math.Round(doctor.Fee * 0.5m, 2) : 0;
+
         slot.IsBooked = true;
 
         var appointment = new Appointment
@@ -76,19 +82,22 @@ public class PatientController : ControllerBase
             DoctorId = slot.DoctorId,
             DoctorAvailabilityId = slot.Id,
             BookedAt = DateTime.UtcNow,
-            Status = "Pending"
+            Status = "Confirmed",
+            PaymentStatus = "Paid",
+            AdvanceAmount = advanceAmount,
+            RazorpayPaymentId = dto.RazorpayPaymentId
         };
 
         _context.Appointments.Add(appointment);
-
         _context.SaveChanges();
 
         return Ok(new
         {
-            Message = "Appointment booked successfully"
+            Message = "Appointment booked successfully",
+            AppointmentId = appointment.Id,
+            AdvancePaid = advanceAmount
         });
     }
-
     [HttpGet("appointments")]
     public IActionResult MyAppointments()
     {
@@ -182,26 +191,70 @@ public class PatientController : ControllerBase
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         var ambulance = _context.Ambulances
-            .FirstOrDefault(x =>
-                x.Id == dto.AmbulanceId);
+            .FirstOrDefault(x => x.Id == dto.AmbulanceId);
 
         if (ambulance == null)
-            return NotFound();
+            return NotFound("Ambulance not found");
+
+        if (!ambulance.IsAvailable)
+            return BadRequest("This ambulance is not available right now");
+
+        // Server-side recalculation — never trust client-sent fare
+        double distanceKm = HaversineKm(dto.PickupLat, dto.PickupLng, dto.DestinationLat, dto.DestinationLng);
+        decimal fare = Math.Round(RatePerKm(dto.VehicleType) * (decimal)distanceKm, 2);
 
         var request = new AmbulanceRequest
         {
             UserId = userId,
             AmbulanceId = dto.AmbulanceId,
             PickupLocation = dto.PickupLocation,
-            DestinationLocation = dto.DestinationLocation
+            DestinationLocation = dto.DestinationLocation,
+            PickupLat = dto.PickupLat,
+            PickupLng = dto.PickupLng,
+            DestinationLat = dto.DestinationLat,
+            DestinationLng = dto.DestinationLng,
+            VehicleType = dto.VehicleType,
+            Fare = fare,
+            DistanceKm = Math.Round(distanceKm, 2),
+            Status = "Pending",
+            RequestTime = DateTime.UtcNow
         };
 
         _context.AmbulanceRequests.Add(request);
+        ambulance.IsAvailable = false; // lock while dispatched
 
         _context.SaveChanges();
 
-        return Ok("Request created");
+        return Ok(new
+        {
+            Message = "Request created",
+            RequestId = request.Id,
+            DistanceKm = request.DistanceKm,
+            Fare = fare
+        });
     }
+
+    // Add these two private static helpers anywhere in the PatientController class:
+
+    private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        double ToRad(double deg) => deg * Math.PI / 180.0;
+        const double R = 6371; // km
+        double dLat = ToRad(lat2 - lat1);
+        double dLon = ToRad(lon2 - lon1);
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                   Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2)) *
+                   Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return R * c;
+    }
+
+    private static decimal RatePerKm(string vehicleType) => vehicleType switch
+    {
+        "AC" => 50m,
+        "Big" => 150m,
+        _ => 25m // NonAC default
+    };
     [HttpPut("appointment/cancel/{id}")]
     public IActionResult CancelAppointment(int id)
     {

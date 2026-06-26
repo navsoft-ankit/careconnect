@@ -21,6 +21,9 @@ import PatientDashboard from "../pages/patient/Dashboard";
 import DoctorBooking from "../pages/patient/Bookdoctor";
 import PatientProducts from "../pages/patient/Products";
 import AmbulanceBook from "../pages/patient/AmbulanceBook";
+import PatientDoctors from "../pages/patient/Doctors";
+import PatientOrders from "../pages/patient/Orders";
+import PatientAppointments from "../pages/patient/Appointments";
 
 // Ambulance Driver
 import AmbulanceDashboard from "../pages/ambulance/Dashboard";
@@ -42,15 +45,8 @@ export default function AppRoutes() {
         <Route path="/admin/products" element={<Products />} />
         <Route path="/admin/appointments" element={<AppointmentPage />} />
         <Route path="/admin/ambulances" element={<AmbulancePage />} />
-        <Route
-  path="/admin/product-orders"
-  element={<ProductOrders />}
-/>
-
-<Route
-  path="/admin/ambulance-bookings"
-  element={<AmbulanceBookings />}
-/>
+        <Route path="/admin/product-orders" element={<ProductOrders />} />
+        <Route path="/admin/ambulance-bookings" element={<AmbulanceBookings />} />
 
         {/* DOCTOR */}
         <Route path="/doctor" element={<DoctorDashboard />} />
@@ -60,6 +56,9 @@ export default function AppRoutes() {
         <Route path="/patient/bookdoctor" element={<DoctorBooking />} />
         <Route path="/patient/products" element={<PatientProducts />} />
         <Route path="/patient/ambulance" element={<AmbulanceBook />} />
+        <Route path="/patient/doctors" element={<PatientDoctors />} />
+        <Route path="/patient/orders" element={<PatientOrders />} />
+        <Route path="/patient/appointments" element={<PatientAppointments />} />
 
         {/* AMBULANCE DRIVER */}
         <Route path="/ambulance" element={<AmbulanceDashboard />} />

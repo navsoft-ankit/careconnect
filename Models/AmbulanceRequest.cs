@@ -16,5 +16,11 @@ public class AmbulanceRequest
 
     public string Status { get; set; } = "Pending";
     public decimal Fare { get; set; }
+    public double PickupLat { get; set; }
+    public double PickupLng { get; set; }
+    public double DestinationLat { get; set; }
+    public double DestinationLng { get; set; }
+    public string VehicleType { get; set; } = "NonAC";
+    public double DistanceKm { get; set; }
 
 }

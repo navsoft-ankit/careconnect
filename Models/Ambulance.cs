@@ -15,4 +15,7 @@ public class Ambulance
     public int UserId { get; set; }
 
     public AppUser User { get; set; }
+    public string Type { get; set; } = "NonAC"; // NonAC | AC | Big
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }   
 }

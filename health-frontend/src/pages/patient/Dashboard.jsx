@@ -1,93 +1,637 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-export default function PatientDashboard() {
-  const navigate = useNavigate();
+export default function Dashboard() {
+    const [doctors, setDoctors] = useState([]);
+    const [appointments, setAppointments] = useState([]);
+    const [orders, setOrders] = useState([]);
+    const [search, setSearch] = useState("");
+    const [menuOpen, setMenuOpen] = useState(false);
 
-  const [doctors, setDoctors] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [ambulances, setAmbulances] = useState([]);
+    useEffect(() => {
+        loadData();
+    }, []);
 
-  useEffect(() => {
-    load();
-  }, []);
+    const loadData = async () => {
+        try {
+            const docRes = await api.get("/patient/doctors");
+            const appRes = await api.get("/patient/appointments");
+            const orderRes = await api.get("/patient/orders");
 
-  const load = async () => {
-    try {
-      const d = await api.get("/patient/doctors");
-      const p = await api.get("/patient/products");
-      const a = await api.get("/patient/ambulances");
+            setDoctors(docRes.data || []);
+            setAppointments(appRes.data || []);
+            setOrders(orderRes.data || []);
+        } catch (err) {
+            console.log(err);
+        }
+    };
 
-      setDoctors(d.data);
-      setProducts(p.data);
-      setAmbulances(a.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+    const filteredDoctors = doctors.filter((d) =>
+        (d.fullName || "").toLowerCase().includes(search.toLowerCase())
+    );
 
-  return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    return (
+        <div className="min-h-screen bg-[#FAF8F3] text-[#16332B] font-[Georgia,serif]">
 
-      <h1 className="text-2xl font-bold mb-4">
-        Patient Dashboard
-      </h1>
+            {/* NAVBAR */}
+            <header className="sticky top-0 z-50 bg-[#FAF8F3]/95 backdrop-blur-sm border-b border-[#E4DFD3]">
+                <div className="max-w-7xl mx-auto px-6 lg:px-10 h-20 flex items-center justify-between">
 
-      {/* DOCTORS */}
-      <h2 className="text-lg font-bold">Doctors</h2>
-      <div className="grid md:grid-cols-3 gap-3 mb-6">
-        {doctors.map((d) => (
-          <div key={d.id} className="bg-white p-3 shadow rounded">
-            <h3 className="font-bold">{d.name}</h3>
-            <p>{d.specialization}</p>
-            <p>₹{d.fee}</p>
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">✦</span>
+                        <span className="text-2xl font-semibold tracking-tight">CareConnect.</span>
+                    </div>
 
-            <button
-              onClick={() => navigate("/patient/book-doctor")}
-              className="bg-blue-500 text-white px-2 py-1 mt-2"
-            >
-              Book
-            </button>
-          </div>
-        ))}
-      </div>
+                    <nav className="hidden lg:flex items-center gap-9 font-[system-ui,sans-serif] text-[15px] text-[#16332B]/80">
+                        <a href="/patient/ambulance" className="hover:text-[#16332B] transition">Emergency Info</a>
+                        <a href="/patient/doctors" className="hover:text-[#16332B] transition">Locations</a>
+                        <a href="/patient/orders" className="hover:text-[#16332B] transition">Orders</a>
+                        <a href="#" className="flex items-center gap-1 hover:text-[#16332B] transition">
+                            For You <span className="text-xs">▾</span>
+                        </a>
+                        <a href="#" className="flex items-center gap-1 hover:text-[#16332B] transition">
+                            For Family <span className="text-xs">▾</span>
+                        </a>
+                        <a href="#" className="flex items-center gap-1 hover:text-[#16332B] transition">
+                            For Business <span className="text-xs">▾</span>
+                        </a>
+                    </nav>
 
-      {/* PRODUCTS */}
-      <h2 className="text-lg font-bold">Products</h2>
-      <div className="grid md:grid-cols-3 gap-3 mb-6">
-        {products.map((p) => (
-          <div key={p.id} className="bg-white p-3 shadow rounded">
-            <h3 className="font-bold">{p.name}</h3>
-            <p>₹{p.price}</p>
+                    <div className="hidden lg:flex items-center gap-6 font-[system-ui,sans-serif] text-[15px]">
+                        <a href="#" className="hover:underline">Log in</a>
+                        <a
+                            href="/patient/doctors"
+                            className="bg-[#16332B] text-white px-6 py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
+                        >
+                            Sign up
+                        </a>
+                        <button aria-label="Search" className="text-lg">⌕</button>
+                    </div>
 
-            <button
-              onClick={() => navigate("/patient/products")}
-              className="bg-green-500 text-white px-2 py-1 mt-2"
-            >
-              Buy
-            </button>
-          </div>
-        ))}
-      </div>
+                    <button
+                        className="lg:hidden text-2xl"
+                        onClick={() => setMenuOpen(!menuOpen)}
+                        aria-label="Menu"
+                    >
+                        ☰
+                    </button>
+                </div>
 
-      {/* AMBULANCE */}
-      <h2 className="text-lg font-bold">Ambulance</h2>
-      <div className="grid md:grid-cols-3 gap-3">
-        {ambulances.map((a) => (
-          <div key={a.id} className="bg-white p-3 shadow rounded">
-            <h3 className="font-bold">{a.driverName}</h3>
+                {menuOpen && (
+                    <div className="lg:hidden border-t border-[#E4DFD3] px-6 py-6 flex flex-col gap-4 font-[system-ui,sans-serif] text-[15px]">
+                        <a href="/patient/ambulance">Emergency Info</a>
+                        <a href="/patient/doctors">Locations</a>
+                        <a href="/patient/orders">Orders</a>
+                        <a href="#">For You</a>
+                        <a href="#">For Family</a>
+                        <a href="#">For Business</a>
+                        <a href="#" className="font-medium">Log in</a>
+                        <a
+                            href="/patient/doctors"
+                            className="bg-[#16332B] text-white px-6 py-3 rounded-full font-medium text-center"
+                        >
+                            Sign up
+                        </a>
+                    </div>
+                )}
+            </header>
 
-            <button
-              onClick={() => navigate("/patient/ambulance")}
-              className="bg-red-500 text-white px-2 py-1 mt-2"
-            >
-              Request
-            </button>
-          </div>
-        ))}
-      </div>
+            {/* HERO */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 pt-14 lg:pt-20 grid lg:grid-cols-2 gap-12 items-center">
 
-    </div>
-  );
+                <div>
+                    <h1 className="text-5xl lg:text-6xl leading-[1.08] font-normal">
+                        No ordinary
+                        <br />
+                        doctor's office
+                    </h1>
+
+                    <p className="mt-7 text-lg leading-8 text-[#16332B]/75 font-[system-ui,sans-serif] max-w-md">
+                        Get 24/7 on-demand virtual care, or book same-day visits
+                        in person or over video — with doctors who actually
+                        have time for you.
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-6 mt-9 font-[system-ui,sans-serif]">
+                        <a
+                            href="/patient/doctors"
+                            className="bg-[#16332B] text-white px-7 py-4 rounded-full font-medium hover:bg-[#0F231D] transition"
+                        >
+                            Book Appointment
+                        </a>
+                        <a
+                            href="/patient/products"
+                            className="border border-[#16332B] px-7 py-4 rounded-full font-medium hover:bg-[#16332B] hover:text-white transition"
+                        >
+                            Buy Medicines
+                        </a>
+
+                    </div>
+
+                    <p className="mt-5 text-sm font-[system-ui,sans-serif] text-[#16332B]/60">
+                        <a href="/patient/ambulance" className="underline hover:text-[#16332B]">
+                            Need urgent help? Book an ambulance →
+                        </a>
+                    </p>
+                </div>
+
+                <div className="relative">
+                    <div className="rounded-[28px] overflow-hidden aspect-[4/3]">
+                        <img
+                            src="https://images.unsplash.com/photo-1581056771107-24ca5f033842?w=900&q=80"
+                            alt="Doctor consulting with patient"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="absolute -left-6 top-8 bg-white rounded-2xl shadow-lg p-5 hidden sm:block">
+                        <h3 className="text-2xl font-semibold text-[#16332B]">250+</h3>
+                        <p className="text-sm text-[#16332B]/60 font-[system-ui,sans-serif] mt-1">
+                            Specialist Doctors
+                        </p>
+                    </div>
+
+                    <div className="absolute -right-4 -bottom-6 bg-white rounded-2xl shadow-lg p-5 hidden sm:block">
+                        <h3 className="text-2xl font-semibold text-[#B5562C]">24/7</h3>
+                        <p className="text-sm text-[#16332B]/60 font-[system-ui,sans-serif] mt-1">
+                            Emergency Support
+                        </p>
+                    </div>
+                </div>
+
+            </section>
+
+            {/* SEARCH */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-20">
+                <div className="bg-white rounded-3xl shadow-sm border border-[#E4DFD3] p-7 lg:p-8">
+                    <h2 className="text-2xl font-medium mb-5">Find your doctor</h2>
+
+                    <div className="grid md:grid-cols-[1fr_1fr_auto] gap-4 font-[system-ui,sans-serif]">
+                        <input
+                            type="text"
+                            placeholder="Search by doctor name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="border border-[#E4DFD3] rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-[#16332B]/30 bg-[#FAF8F3]"
+                        />
+
+                        <select className="border border-[#E4DFD3] rounded-full px-6 py-4 bg-[#FAF8F3] outline-none focus:ring-2 focus:ring-[#16332B]/30">
+                            <option>All Specializations</option>
+                            <option>Cardiology</option>
+                            <option>Neurology</option>
+                            <option>Orthopedic</option>
+                            <option>Dermatology</option>
+                        </select>
+
+                        <button className="bg-[#16332B] text-white rounded-full font-medium px-8 hover:bg-[#0F231D] transition">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* STATS */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-20">
+                <div className="grid md:grid-cols-4 gap-6 font-[system-ui,sans-serif]">
+
+                    <div className="bg-white rounded-2xl p-7 border border-[#E4DFD3]">
+                        <h2 className="text-3xl font-semibold font-[Georgia,serif] text-[#16332B]">
+                            {doctors.length}+
+                        </h2>
+                        <p className="text-[#16332B]/60 mt-2 text-sm">Specialist Doctors</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-7 border border-[#E4DFD3]">
+                        <h2 className="text-3xl font-semibold font-[Georgia,serif] text-[#3E7C59]">
+                            {appointments.length}
+                        </h2>
+                        <p className="text-[#16332B]/60 mt-2 text-sm">Your Appointments</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-7 border border-[#E4DFD3]">
+                        <h2 className="text-3xl font-semibold font-[Georgia,serif] text-[#B5562C]">
+                            24/7
+                        </h2>
+                        <p className="text-[#16332B]/60 mt-2 text-sm">Emergency Service</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl p-7 border border-[#E4DFD3]">
+                        <h2 className="text-3xl font-semibold font-[Georgia,serif] text-[#8B6BAE]">
+                            {orders.length}
+                        </h2>
+                        <p className="text-[#16332B]/60 mt-2 text-sm">Medicine Orders</p>
+                    </div>
+
+                </div>
+            </section>
+
+            {/* SERVICES */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <div className="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 className="text-4xl font-normal">Our services</h2>
+                        <p className="text-[#16332B]/60 mt-3 font-[system-ui,sans-serif]">
+                            Everything you need for better healthcare, in one place.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                    {[
+                        {
+                            href: "/patient/doctors",
+                            icon: "🩺",
+                            title: "Doctors",
+                            desc: "Book appointments with trusted specialists.",
+                            accent: "#16332B",
+                        },
+                        {
+                            href: "/patient/products",
+                            icon: "💊",
+                            title: "Medicines",
+                            desc: "Order medicines at affordable prices.",
+                            accent: "#3E7C59",
+                        },
+                        {
+                            href: "/patient/ambulance",
+                            icon: "🚑",
+                            title: "Ambulance",
+                            desc: "Emergency ambulance booking, anytime.",
+                            accent: "#B5562C",
+                        },
+                        {
+                            href: "/patient/appointments",
+                            icon: "📅",
+                            title: "My Appointments",
+                            desc: "View and manage all your visits.",
+                            accent: "#8B6BAE",
+                        },
+                    ].map((s) => (
+                        <a
+                            key={s.title}
+                            href={s.href}
+                            className="bg-white rounded-2xl p-8 border border-[#E4DFD3] hover:border-[#16332B]/30 hover:shadow-md transition"
+                        >
+                            <div
+                                className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+                                style={{ backgroundColor: `${s.accent}14` }}
+                            >
+                                {s.icon}
+                            </div>
+
+                            <h3 className="text-xl font-medium mt-6">{s.title}</h3>
+
+                            <p className="text-[#16332B]/60 mt-2 font-[system-ui,sans-serif] text-[15px] leading-6">
+                                {s.desc}
+                            </p>
+                        </a>
+                    ))}
+
+                </div>
+            </section>
+
+            {/* SPECIALITIES */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <h2 className="text-4xl font-normal mb-10">Popular specialities</h2>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 font-[system-ui,sans-serif]">
+                    {[
+                        "❤️ Cardiology",
+                        "🧠 Neurology",
+                        "🦴 Orthopedic",
+                        "👁 Ophthalmology",
+                        "🦷 Dental",
+                        "👶 Pediatrics",
+                    ].map((item) => (
+                        <div
+                            key={item}
+                            className="bg-white border border-[#E4DFD3] rounded-2xl p-6 text-center hover:bg-[#16332B] hover:text-white hover:border-[#16332B] transition cursor-pointer"
+                        >
+                            {item}
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* FEATURED DOCTORS */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <div className="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 className="text-4xl font-normal">Featured doctors</h2>
+                        <p className="text-[#16332B]/60 mt-3 font-[system-ui,sans-serif]">
+                            Meet our experienced specialists.
+                        </p>
+                    </div>
+
+                    <a
+                        href="/patient/doctors"
+                        className="text-[#16332B] font-medium font-[system-ui,sans-serif] hover:underline whitespace-nowrap"
+                    >
+                        View all →
+                    </a>
+                </div>
+
+                {filteredDoctors.length === 0 ? (
+                    <div className="bg-white border border-[#E4DFD3] rounded-2xl py-16 text-center font-[system-ui,sans-serif] text-[#16332B]/60">
+                        No doctors found.
+                    </div>
+                ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {filteredDoctors.slice(0, 4).map((doctor, i) => {
+                            const stockImages = [
+                                "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&q=80",
+                                "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&q=80",
+                                "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&q=80",
+                                "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&q=80",
+                            ];
+                            return (
+                                <div
+                                    key={doctor.id}
+                                    className="bg-white rounded-2xl border border-[#E4DFD3] overflow-hidden hover:shadow-md transition"
+                                >
+                                    <img
+                                        src={doctor.image || stockImages[i % stockImages.length]}
+                                        className="w-full h-56 object-cover"
+                                        alt={doctor.fullName}
+                                    />
+
+                                    <div className="p-6 font-[system-ui,sans-serif]">
+                                        <h3 className="text-lg font-semibold font-[Georgia,serif]">
+                                            Dr. {doctor.fullName}
+                                        </h3>
+
+                                        <p className="text-[#16332B]/60 mt-1 text-sm">
+                                            {doctor.specialization}
+                                        </p>
+
+                                        <div className="flex items-center mt-3 text-sm">
+                                            <span className="text-[#B5562C]">★★★★★</span>
+                                            <span className="ml-2 text-[#16332B]/50">(4.9)</span>
+                                        </div>
+
+                                        <a
+                                            href={`/patient/doctors/${doctor.id}`}
+                                            className="block mt-5 bg-[#16332B] text-white text-center py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
+                                        >
+                                            Book Appointment
+                                        </a>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </section>
+
+            {/* UPCOMING APPOINTMENT */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <div className="bg-white rounded-2xl border border-[#E4DFD3] p-8 lg:p-10">
+
+                    <div className="flex justify-between items-center mb-7">
+                        <h2 className="text-2xl font-medium">Upcoming appointment</h2>
+                        <a
+                            href="/patient/appointments"
+                            className="text-[#16332B] font-medium font-[system-ui,sans-serif] hover:underline"
+                        >
+                            View all
+                        </a>
+                    </div>
+
+                    {appointments.length === 0 ? (
+                        <div className="text-center py-12 font-[system-ui,sans-serif]">
+                            <h3 className="text-lg font-medium">No upcoming appointment</h3>
+                            <p className="text-[#16332B]/60 mt-2">
+                                Book your first consultation today.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid md:grid-cols-2 gap-6 font-[system-ui,sans-serif]">
+                            {appointments.slice(0, 2).map((a) => (
+                                <div
+                                    key={a.id}
+                                    className="border border-[#E4DFD3] rounded-2xl p-6 hover:border-[#16332B]/40 transition"
+                                >
+                                    <h3 className="text-lg font-semibold font-[Georgia,serif]">
+                                        Dr. {a.doctorName || a.doctorId}
+                                    </h3>
+
+                                    <p className="text-[#16332B]/60 mt-2 text-sm">
+                                        {new Date(a.bookedAt).toLocaleString()}
+                                    </p>
+
+                                    <span className="inline-block mt-4 bg-[#3E7C59]/10 text-[#3E7C59] px-4 py-1.5 rounded-full text-sm font-medium">
+                                        {a.status}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
+
+            {/* HEALTH TIP */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <div className="rounded-3xl bg-[#3E7C59] text-white p-10 lg:p-12 grid lg:grid-cols-[1fr_auto] gap-8 items-center">
+                    <div>
+                        <p className="font-[system-ui,sans-serif] text-sm uppercase tracking-wide text-white/70 mb-3">
+                            Daily health tip
+                        </p>
+                        <h2 className="text-3xl lg:text-4xl font-normal leading-snug">
+                            Drink plenty of water, sleep at least
+                            8 hours, and keep moving.
+                        </h2>
+                    </div>
+                </div>
+            </section>
+
+            {/* EMERGENCY */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-12">
+                <div className="rounded-3xl bg-[#B5562C] p-10 lg:p-12 text-white flex flex-col lg:flex-row justify-between items-center gap-8">
+                    <div>
+                        <h2 className="text-3xl lg:text-4xl font-normal">
+                            Need emergency assistance?
+                        </h2>
+                        <p className="mt-3 text-white/80 font-[system-ui,sans-serif]">
+                            Our ambulance network is available 24×7.
+                        </p>
+                    </div>
+
+                    <a
+                        href="/patient/ambulance"
+                        className="bg-white text-[#B5562C] px-8 py-4 rounded-full font-medium hover:scale-[1.03] transition whitespace-nowrap font-[system-ui,sans-serif]"
+                    >
+                        Book Ambulance
+                    </a>
+                </div>
+            </section>
+
+            {/* RECENT ORDERS */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <div className="flex justify-between items-end mb-8">
+                    <h2 className="text-4xl font-normal">Recent orders</h2>
+                    <a
+                        href="/patient/orders"
+                        className="text-[#16332B] font-medium font-[system-ui,sans-serif] hover:underline"
+                    >
+                        View all →
+                    </a>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-[#E4DFD3] overflow-hidden font-[system-ui,sans-serif]">
+                    {orders.length === 0 ? (
+                        <div className="py-14 text-center text-[#16332B]/60">
+                            No medicine orders found.
+                        </div>
+                    ) : (
+                        <table className="w-full text-[15px]">
+                            <thead className="bg-[#FAF8F3]">
+                                <tr>
+                                    <th className="text-left p-5 font-medium">Medicine</th>
+                                    <th className="text-left p-5 font-medium">Date</th>
+                                    <th className="text-left p-5 font-medium">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orders.slice(0, 5).map((order) => (
+                                    <tr
+                                        key={order.id}
+                                        className="border-t border-[#E4DFD3] hover:bg-[#FAF8F3]/60"
+                                    >
+                                        <td className="p-5">{order.productName}</td>
+                                        <td className="p-5">
+                                            {new Date(order.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="p-5">
+                                            <span className="bg-[#3E7C59]/10 text-[#3E7C59] px-3 py-1 rounded-full">
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </section>
+
+            {/* TESTIMONIALS */}
+            <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
+                <h2 className="text-4xl font-normal text-center mb-12">
+                    What our patients say
+                </h2>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                    {[
+                        {
+                            name: "Rahul Sharma",
+                            review: "Excellent doctors and smooth appointment booking.",
+                        },
+                        {
+                            name: "Priya Das",
+                            review: "Medicine delivery was fast and affordable.",
+                        },
+                        {
+                            name: "Ankit Roy",
+                            review: "Ambulance reached within minutes during emergency.",
+                        },
+                    ].map((item, index) => (
+                        <div
+                            key={index}
+                            className="bg-white rounded-2xl border border-[#E4DFD3] p-8 font-[system-ui,sans-serif]"
+                        >
+                            <div className="text-[#B5562C] text-lg">★★★★★</div>
+
+                            <p className="text-[#16332B]/75 mt-5 leading-7">
+                                "{item.review}"
+                            </p>
+
+                            <h3 className="font-semibold mt-6 font-[Georgia,serif]">
+                                {item.name}
+                            </h3>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* FAQ */}
+            <section className="max-w-4xl mx-auto px-6 lg:px-10 mt-24">
+                <h2 className="text-4xl font-normal text-center mb-10">
+                    Frequently asked questions
+                </h2>
+
+                <div className="space-y-4 font-[system-ui,sans-serif]">
+                    {[
+                        {
+                            q: "How do I book an appointment?",
+                            a: "Select your preferred doctor and choose your available time slot.",
+                        },
+                        {
+                            q: "Can I order medicines online?",
+                            a: "Yes, medicines can be ordered directly from our pharmacy.",
+                        },
+                        {
+                            q: "Is ambulance service available 24×7?",
+                            a: "Yes, emergency ambulance service is available all day.",
+                        },
+                    ].map((item, i) => (
+                        <div
+                            key={i}
+                            className="bg-white border border-[#E4DFD3] rounded-2xl p-6"
+                        >
+                            <h3 className="font-medium text-lg font-[Georgia,serif]">
+                                {item.q}
+                            </h3>
+                            <p className="text-[#16332B]/65 mt-3 leading-7">{item.a}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* FOOTER */}
+            <footer className="bg-[#16332B] mt-28 text-white">
+                <div className="max-w-7xl mx-auto px-6 lg:px-10 py-16 grid md:grid-cols-4 gap-10">
+
+                    <div>
+                        <h2 className="text-2xl font-medium">care.</h2>
+                        <p className="text-white/60 mt-4 font-[system-ui,sans-serif] text-[15px] leading-6">
+                            Your trusted digital healthcare partner.
+                        </p>
+                    </div>
+
+                    <div className="font-[system-ui,sans-serif]">
+                        <h3 className="font-medium mb-4 font-[Georgia,serif] text-lg">Services</h3>
+                        <ul className="space-y-2 text-white/60 text-[15px]">
+                            <li>Doctors</li>
+                            <li>Medicines</li>
+                            <li>Ambulance</li>
+                            <li>Appointments</li>
+                        </ul>
+                    </div>
+
+                    <div className="font-[system-ui,sans-serif]">
+                        <h3 className="font-medium mb-4 font-[Georgia,serif] text-lg">Company</h3>
+                        <ul className="space-y-2 text-white/60 text-[15px]">
+                            <li>About Us</li>
+                            <li>Privacy Policy</li>
+                            <li>Terms & Conditions</li>
+                            <li>Support</li>
+                        </ul>
+                    </div>
+
+                    <div className="font-[system-ui,sans-serif]">
+                        <h3 className="font-medium mb-4 font-[Georgia,serif] text-lg">Contact</h3>
+                        <p className="text-white/60 text-[15px]">support@medicare.com</p>
+                        <p className="text-white/60 mt-3 text-[15px]">+91 XXXXX XXXXX</p>
+                    </div>
+
+                </div>
+
+                <div className="border-t border-white/10 py-6 text-center text-white/50 font-[system-ui,sans-serif] text-sm">
+                    © 2026 care. All Rights Reserved.
+                </div>
+            </footer>
+
+        </div>
+    );
 }

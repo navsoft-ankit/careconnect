@@ -20,5 +20,29 @@ namespace HEALTHCARE.Data
         public DbSet<Ambulance> Ambulances { get; set; }
         public DbSet<AmbulanceRequest> AmbulanceRequests { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<HospitalLocation> HospitalLocations { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    modelBuilder.Entity<Appointment>()
+        .HasOne(a => a.Patient)
+        .WithMany()
+        .HasForeignKey(a => a.PatientId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+    modelBuilder.Entity<Appointment>()
+        .HasOne(a => a.Doctor)
+        .WithMany()
+        .HasForeignKey(a => a.DoctorId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+    modelBuilder.Entity<Appointment>()
+        .HasOne(a => a.DoctorAvailability)
+        .WithMany()
+        .HasForeignKey(a => a.DoctorAvailabilityId)
+        .OnDelete(DeleteBehavior.Restrict);
+}
     }
 }
