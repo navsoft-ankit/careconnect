@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { User, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 export default function Dashboard() {
@@ -395,12 +396,12 @@ export default function Dashboard() {
                                             <span className="ml-2 text-[#16332B]/50">(4.9)</span>
                                         </div>
 
-                                        <a
-                                            href={`/patient/doctors/${doctor.id}`}
-                                            className="block mt-5 bg-[#16332B] text-white text-center py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
-                                        >
-                                            Book Appointment
-                                        </a>
+<Link
+    to={`/patient/bookdoctor?doctorId=${doctor.id}`}
+    className="block mt-5 bg-[#16332B] text-white text-center py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
+>
+    Book Appointment
+</Link>
                                     </div>
                                 </div>
                             );

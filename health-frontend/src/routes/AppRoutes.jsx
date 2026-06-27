@@ -24,7 +24,10 @@ import PatientProducts from "../pages/patient/Products";
 import AmbulanceBook from "../pages/patient/AmbulanceBook";
 import PatientDoctors from "../pages/patient/Doctors";
 import PatientOrders from "../pages/patient/Orders";
+import PlaceOrders from "../pages/patient/Placeorder";
 import PatientAppointments from "../pages/patient/Appointments";
+import AmbulanceRequest from "../pages/patient/AmbulanceRequest";
+
 
 // Ambulance Driver
 import AmbulanceDashboard from "../pages/ambulance/Dashboard";
@@ -60,7 +63,13 @@ export default function AppRoutes() {
         <Route path="/patient/ambulance" element={<AmbulanceBook />} />
         <Route path="/patient/doctors" element={<PatientDoctors />} />
         <Route path="/patient/orders" element={<PatientOrders />} />
+        <Route path="/patient/Place-order" element={<PlaceOrders />} />
         <Route path="/patient/appointments" element={<PatientAppointments />} />
+        <Route
+    path="/patient/ambulance/request"
+    element={<AmbulanceRequest />}
+/>
+        
 
         {/* AMBULANCE DRIVER */}
         <Route path="/ambulance" element={<AmbulanceDashboard />} />

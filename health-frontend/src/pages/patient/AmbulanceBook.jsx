@@ -1,238 +1,269 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import {
+    FiSearch,
+    FiMapPin,
+    FiPhoneCall,
+    FiTruck,
+} from "react-icons/fi";
+import { toast, Toaster } from "react-hot-toast";
 
-const AMBULANCE_TYPES = [
-    { key: "basic", label: "Basic Life Support", icon: "🚑", color: "from-red-500 to-red-600" },
-    { key: "advanced", label: "Advanced Life Support", icon: "🚨", color: "from-red-700 to-red-800" },
-    { key: "neonatal", label: "Neonatal Care", icon: "👶", color: "from-rose-500 to-rose-600" },
-];
+const TYPE_META = {
+    "Basic Life Support": { tag: "BLS", note: "Standard emergency transport" },
+    "Advanced Life Support": { tag: "ALS", note: "Critical & trauma support" },
+    "Neonatal Care": { tag: "NICU", note: "Infant & newborn transport" },
+};
+
+function getTypeMeta(type) {
+    return TYPE_META[type] || { tag: "BLS", note: "Standard emergency transport" };
+}
 
 function AmbulanceCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 animate-pulse">
-            <div className="w-20 h-16 bg-gray-100 rounded-xl shrink-0" />
-            <div className="flex-1 space-y-2">
-                <div className="h-3.5 bg-gray-100 rounded w-32" />
-                <div className="h-3 bg-gray-100 rounded w-20" />
-                <div className="h-3 bg-gray-100 rounded w-16" />
+        <div className="bg-white rounded-2xl border border-[#E7E2D6] p-4 flex items-center gap-4 animate-pulse">
+            <div className="w-16 h-16 rounded-xl bg-[#EFEAE0] shrink-0" />
+            <div className="flex-1 space-y-2.5 min-w-0">
+                <div className="h-3.5 bg-[#EFEAE0] rounded w-32" />
+                <div className="h-3 bg-[#EFEAE0] rounded w-24" />
+                <div className="h-3 bg-[#EFEAE0] rounded w-20" />
             </div>
-            <div className="w-20 h-9 bg-gray-100 rounded-full" />
+            <div className="w-20 h-10 bg-[#EFEAE0] rounded-full shrink-0" />
         </div>
     );
 }
 
 export default function Ambulance() {
+    const navigate = useNavigate();
     const [ambulances, setAmbulances] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeType, setActiveType] = useState("Local");
-    const [bookingId, setBookingId] = useState(null);
-    const [bookingLoading, setBookingLoading] = useState(null);
     const [error, setError] = useState("");
+    const [search, setSearch] = useState("");
+    const [activeZone, setActiveZone] = useState("Local");
 
-    const locationTabs = ["Local", "City", "District"];
+    const zones = ["Local", "City", "District"];
 
     useEffect(() => {
         loadAmbulances();
     }, []);
 
-    const loadAmbulances = async () => {
+    async function loadAmbulances() {
         setLoading(true);
+        setError("");
         try {
             const res = await api.get("/patient/ambulances");
             setAmbulances(res.data || []);
         } catch (err) {
-            console.log(err);
-            setError("Unable to load ambulances. Please try again.");
+            setError("Unable to load ambulances right now.");
+            toast.error("Couldn't load nearby ambulances.");
         } finally {
             setLoading(false);
         }
-    };
+    }
 
-    const handleBook = async (ambulanceId) => {
-        setBookingLoading(ambulanceId);
-        try {
-            const res = await api.post("/patient/ambulance/book", { ambulanceId });
-            setBookingId(res.data?.bookingId || ambulanceId);
-        } catch (err) {
-            console.log(err);
-            alert(err?.response?.data || "Booking failed. Please try again.");
-        } finally {
-            setBookingLoading(null);
-        }
-    };
+    function goToBooking(amb) {
+        const params = new URLSearchParams({
+            ambulanceId: amb.id,
+            driverName: amb.driverName || "",
+        });
+        navigate(`/patient/ambulance/request?${params.toString()}`);
+    }
 
-    // Group ambulances by type
-    const grouped = ambulances.reduce((acc, a) => {
+    const filtered = ambulances.filter((a) => {
+        if (!search) return true;
+        const haystack = `${a.driverName || ""} ${a.vehicleNumber || ""}`.toLowerCase();
+        return haystack.includes(search.toLowerCase());
+    });
+
+    const grouped = filtered.reduce((acc, a) => {
         const type = a.type || "Basic Life Support";
         if (!acc[type]) acc[type] = [];
         acc[type].push(a);
         return acc;
     }, {});
 
+    const hasResults = filtered.length > 0;
+
     return (
-        <div className="min-h-screen bg-[#F8F7F4]">
-            <div className="max-w-2xl mx-auto px-4 py-8">
+        <>
+            <Toaster position="top-right" />
 
-                {/* Header */}
-                <div className="mb-6">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="text-red-500 text-xl">🚑</span>
-                        <h1 className="text-2xl font-bold text-gray-900">Ambulance Booking</h1>
+            <div className="min-h-screen bg-[#F8F6F0]">
+                <div className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-10">
+
+                    {/* Header */}
+                    <div className="mb-7">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C9683F] uppercase tracking-wide">
+                            <FiTruck size={13} /> Emergency transport
+                        </span>
+                        <h1 className="text-[28px] font-serif font-semibold text-[#16332B] mt-2 leading-tight">
+                            Book an ambulance
+                        </h1>
+                        <p className="text-[#6B6458] text-sm mt-1.5">
+                            Find a nearby driver and dispatch help in minutes.
+                        </p>
                     </div>
-                    <p className="text-gray-500 text-sm">Find and book the nearest ambulance for emergency care</p>
-                </div>
 
-                {/* Search Bar */}
-                <div className="relative mb-5">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
-                    <input
-                        placeholder="Search for Ambulance, Hospital..."
-                        className="w-full h-12 pl-10 pr-5 rounded-full border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-200 text-sm shadow-sm"
-                    />
-                </div>
-
-                {/* Location Tabs */}
-                <div className="flex gap-2 mb-7">
-                    {locationTabs.map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveType(tab)}
-                            className={`flex-1 h-10 rounded-full text-sm font-semibold transition ${activeType === tab
-                                ? "bg-red-500 text-white shadow-md shadow-red-200"
-                                : "bg-white border border-gray-200 text-gray-600 hover:border-red-200"
-                                }`}
-                        >
-                            {tab}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Booking success */}
-                {bookingId && (
-                    <div className="mb-5 bg-green-50 border border-green-200 rounded-2xl p-4 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">✅</div>
-                        <div>
-                            <p className="font-semibold text-green-800 text-sm">Ambulance Booked!</p>
-                            <p className="text-green-700 text-xs mt-0.5">Booking ID: #{bookingId} — Help is on the way</p>
-                        </div>
-                        <button onClick={() => setBookingId(null)} className="ml-auto text-green-600 text-xs underline">Dismiss</button>
-                    </div>
-                )}
-
-                {/* Error */}
-                {error && (
-                    <div className="mb-5 bg-red-50 border border-red-100 rounded-2xl p-4 flex items-center justify-between">
-                        <p className="text-red-700 text-sm">{error}</p>
-                        <button onClick={loadAmbulances} className="text-red-600 text-xs font-medium underline">Retry</button>
-                    </div>
-                )}
-
-                {/* Loading */}
-                {loading && (
-                    <div className="space-y-4">
-                        {[1, 2, 3, 4].map((i) => <AmbulanceCardSkeleton key={i} />)}
-                    </div>
-                )}
-
-                {/* Grouped Ambulance Lists */}
-                {!loading && ambulances.length > 0 && (
-                    <div className="space-y-8">
-                        {Object.entries(grouped).map(([type, list]) => (
-                            <section key={type}>
-                                {/* Section Header */}
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-5 bg-red-500 rounded-full" />
-                                        <h2 className="font-bold text-gray-900 text-base">{type} Ambulance</h2>
-                                    </div>
-                                    <button className="text-red-500 text-sm font-medium">View all</button>
-                                </div>
-
-                                {/* Cards */}
-                                <div className="space-y-3">
-                                    {list.map((amb) => (
-                                        <div
-                                            key={amb.id}
-                                            className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-4 hover:shadow-md transition"
-                                        >
-                                            {/* Ambulance Image/Icon */}
-                                            <div className="w-20 h-16 bg-red-50 rounded-xl flex items-center justify-center text-3xl shrink-0 border border-red-100">
-                                                {amb.image ? (
-                                                    <img src={amb.image} alt={amb.driverName} className="w-full h-full object-contain rounded-xl" />
-                                                ) : (
-                                                    "🚑"
-                                                )}
-                                            </div>
-
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-semibold text-gray-900 text-sm truncate">
-                                                    {amb.driverName || "Mr. Driver"}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-0.5">
-                                                    {amb.distance || "1.2"} km away
-                                                </p>
-                                                {amb.vehicleNumber && (
-                                                    <p className="text-xs text-gray-400 mt-0.5">{amb.vehicleNumber}</p>
-                                                )}
-                                                <div className="flex items-center gap-1 mt-1.5">
-                                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                                                    <span className="text-xs text-green-600 font-medium">Available now</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Book Button */}
-                                            <button
-                                                onClick={() => handleBook(amb.id)}
-                                                disabled={bookingLoading === amb.id}
-                                                className="shrink-0 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition"
-                                            >
-                                                {bookingLoading === amb.id ? "..." : "Book"}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-                )}
-
-                {/* Fallback sample if API returns empty (for UI preview) */}
-                {!loading && ambulances.length === 0 && !error && (
-                    <div className="space-y-8">
-                        {AMBULANCE_TYPES.map((type) => (
-                            <section key={type.key}>
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-1 h-5 bg-red-500 rounded-full" />
-                                        <h2 className="font-bold text-gray-900 text-base">{type.label}</h2>
-                                    </div>
-                                    <button className="text-red-500 text-sm font-medium">View all</button>
-                                </div>
-                                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400 text-sm">
-                                    No ambulances available nearby
-                                </div>
-                            </section>
-                        ))}
-                    </div>
-                )}
-
-                {/* Emergency Banner */}
-                <div className="mt-10 bg-red-500 rounded-3xl p-6 text-white flex items-center gap-4">
-                    <div className="text-4xl">🆘</div>
-                    <div className="flex-1">
-                        <p className="font-bold text-lg">Need Urgent Help?</p>
-                        <p className="text-red-100 text-sm mt-0.5">Call 108 for immediate emergency assistance</p>
-                    </div>
+                    {/* Emergency banner — kept high-visibility red as a safety convention */}
                     <a
                         href="tel:108"
-                        className="shrink-0 bg-white text-red-600 font-bold px-5 py-2.5 rounded-full text-sm hover:bg-red-50 transition"
+                        className="flex items-center gap-4 bg-[#B3261E] rounded-2xl p-5 text-white mb-7 hover:bg-[#9E211A] transition group"
                     >
-                        Call 108
+                        <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center shrink-0">
+                            <FiPhoneCall size={20} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold leading-tight">Life-threatening emergency?</p>
+                            <p className="text-white/80 text-sm mt-0.5">Call 108 directly — don't wait for booking</p>
+                        </div>
+                        <span className="shrink-0 bg-white text-[#B3261E] font-semibold px-4 py-2 rounded-full text-sm group-hover:bg-white/90 transition">
+                            Call 108
+                        </span>
                     </a>
-                </div>
 
+                    {/* Search */}
+                    <div className="relative mb-4">
+                        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8478]" size={16} />
+                        <input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search by driver or vehicle number"
+                            className="w-full h-12 pl-11 pr-4 rounded-xl border border-[#E7E2D6] bg-white focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 focus:border-[#16332B] text-sm placeholder:text-[#A8A192] transition"
+                        />
+                    </div>
+
+                    {/* Zone tabs */}
+                    <div className="flex gap-2 mb-7">
+                        {zones.map((zone) => (
+                            <button
+                                key={zone}
+                                onClick={() => setActiveZone(zone)}
+                                className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-sm font-medium transition ${
+                                    activeZone === zone
+                                        ? "bg-[#16332B] text-white"
+                                        : "bg-white border border-[#E7E2D6] text-[#6B6458] hover:border-[#16332B]/30"
+                                }`}
+                            >
+                                <FiMapPin size={13} />
+                                {zone}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Error */}
+                    {error && (
+                        <div className="mb-6 bg-[#FBEAE5] border border-[#E8B8AA] rounded-2xl p-4 flex items-center justify-between gap-3">
+                            <p className="text-[#9E3A20] text-sm">{error}</p>
+                            <button
+                                onClick={loadAmbulances}
+                                className="text-[#9E3A20] text-sm font-semibold shrink-0 hover:underline"
+                            >
+                                Retry
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Loading */}
+                    {loading && (
+                        <div className="space-y-3">
+                            {[1, 2, 3, 4].map((i) => (
+                                <AmbulanceCardSkeleton key={i} />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Results */}
+                    {!loading && hasResults && (
+                        <div className="space-y-7">
+                            {Object.entries(grouped).map(([type, list]) => {
+                                const meta = getTypeMeta(type);
+                                return (
+                                    <section key={type}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-[10px] font-bold tracking-wider text-white bg-[#16332B] rounded px-1.5 py-0.5">
+                                                    {meta.tag}
+                                                </span>
+                                                <h2 className="font-semibold text-[#16332B] text-[15px]">
+                                                    {type}
+                                                </h2>
+                                            </div>
+                                            <span className="text-xs text-[#A8A192]">{list.length} available</span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {list.map((amb) => (
+                                                <div
+                                                    key={amb.id}
+                                                    className="bg-white rounded-2xl border border-[#E7E2D6] p-4 flex items-center gap-4 hover:border-[#16332B]/25 hover:shadow-sm transition"
+                                                >
+                                                    <div className="w-16 h-16 rounded-xl bg-[#F8F6F0] border border-[#E7E2D6] flex items-center justify-center text-2xl shrink-0 overflow-hidden">
+                                                        {amb.image ? (
+                                                            <img
+                                                                src={amb.image}
+                                                                alt={amb.driverName}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            "🚑"
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-[#16332B] text-sm truncate">
+                                                            {amb.driverName || "Driver"}
+                                                        </p>
+                                                        <p className="text-xs text-[#8B8478] mt-1">
+                                                            {amb.distance ?? "1.2"} km away
+                                                            {amb.vehicleNumber ? ` · ${amb.vehicleNumber}` : ""}
+                                                        </p>
+                                                        <div className="flex items-center gap-1.5 mt-1.5">
+                                                            <span className="w-1.5 h-1.5 bg-[#3F8A5C] rounded-full" />
+                                                            <span className="text-xs text-[#3F8A5C] font-medium">
+                                                                Available now
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        disabled={amb.isAvailable === false}
+                                                        onClick={() => goToBooking(amb)}
+                                                        className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition ${
+                                                            amb.isAvailable === false
+                                                                ? "bg-[#E7E2D6] text-[#A8A192] cursor-not-allowed"
+                                                                : "bg-[#C9683F] hover:bg-[#B85A33] text-white"
+                                                        }`}
+                                                    >
+                                                        {amb.isAvailable === false ? "Already booked" : "Book"}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Empty state */}
+                    {!loading && !hasResults && !error && (
+                        <div className="bg-white rounded-2xl border border-[#E7E2D6] py-16 px-6 text-center">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-[#F8F6F0] flex items-center justify-center text-3xl">
+                                🚑
+                            </div>
+                            <h2 className="text-[#16332B] font-semibold mt-5">
+                                {search ? "No matches found" : "No ambulances nearby"}
+                            </h2>
+                            <p className="text-[#8B8478] text-sm mt-2 max-w-xs mx-auto">
+                                {search
+                                    ? "Try a different name or vehicle number."
+                                    : "Try a different zone, or call 108 for an immediate dispatch."}
+                            </p>
+                        </div>
+                    )}
+
+                </div>
             </div>
-        </div>
+        </>
     );
 }

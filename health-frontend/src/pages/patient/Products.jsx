@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
 const CATEGORIES = ["All", "Tablets", "Syrups", "Injections", "Vitamins", "Skincare", "Devices"];
@@ -18,14 +19,13 @@ function ProductCardSkeleton() {
 }
 
 export default function Products() {
+    const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [qty, setQty] = useState({});
     const [activeCategory, setActiveCategory] = useState("All");
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState("default");
-    const [addedIds, setAddedIds] = useState(new Set());
-    const [placingId, setPlacingId] = useState(null);
 
     useEffect(() => {
         loadProducts();
@@ -56,27 +56,16 @@ export default function Products() {
         return result;
     }, [products, search, activeCategory, sortBy]);
 
-    const handleOrder = async (productId) => {
-        setPlacingId(productId);
-        try {
-            const quantity = qty[productId] || 1;
-            const res = await api.post("/patient/order", { productId, quantity });
-            setAddedIds((prev) => new Set([...prev, productId]));
-            setTimeout(() => {
-                setAddedIds((prev) => {
-                    const n = new Set(prev);
-                    n.delete(productId);
-                    return n;
-                });
-            }, 2000);
-            loadProducts();
-        } catch (err) {
-            console.log(err);
-            alert(err?.response?.data || "Order failed");
-        } finally {
-            setPlacingId(null);
-        }
-    };
+    function goToOrder(product) {
+        const quantity = qty[product.id] || 1;
+        const params = new URLSearchParams({
+            productId: product.id,
+            quantity,
+            productName: product.name || "",
+            price: product.price,
+        });
+        navigate(`/patient/place-order?${params.toString()}`);
+    }
 
     return (
         <div className="min-h-screen bg-[#F8F7F4]">
@@ -149,7 +138,7 @@ export default function Products() {
                     </div>
                 )}
 
-                {/* Product Grid — Myntra style */}
+                {/* Product Grid */}
                 {!loading && filteredProducts.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {filteredProducts.map((p) => (
@@ -241,18 +230,17 @@ export default function Products() {
                                             </button>
                                         </div>
 
-                                        {/* Add to cart / Order button */}
+                                        {/* Order button — navigates to the order flow (address -> payment -> confirm) */}
                                         <button
-                                            onClick={() => handleOrder(p.id)}
-                                            disabled={p.stock === 0 || placingId === p.id}
-                                            className={`flex-1 h-8 rounded-full text-xs font-semibold transition ${addedIds.has(p.id)
-                                                ? "bg-green-500 text-white"
-                                                : p.stock === 0
+                                            onClick={() => goToOrder(p)}
+                                            disabled={p.stock === 0}
+                                            className={`flex-1 h-8 rounded-full text-xs font-semibold transition ${
+                                                p.stock === 0
                                                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                                     : "bg-[#16332B] hover:bg-[#0F231D] text-white"
-                                                }`}
+                                            }`}
                                         >
-                                            {placingId === p.id ? "..." : addedIds.has(p.id) ? "✓ Ordered!" : "🛒 Order"}
+                                            🛒 Order
                                         </button>
                                     </div>
                                 </div>

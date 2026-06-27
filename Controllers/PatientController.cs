@@ -116,11 +116,14 @@ public class PatientController : ControllerBase
     {
         return Ok(_context.Products.ToList());
     }
-    [HttpPost("order")]
+   [HttpPost("order")]
     public IActionResult PlaceOrder(PlaceOrderDto dto)
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        if (string.IsNullOrWhiteSpace(dto.DeliveryAddress))
+            return BadRequest("Delivery address is required");
 
         var product = _context.Products
             .FirstOrDefault(x => x.Id == dto.ProductId);
@@ -131,13 +134,23 @@ public class PatientController : ControllerBase
         if (product.Stock < dto.Quantity)
             return BadRequest("Insufficient stock");
 
+        var paymentMode = dto.PaymentMode == "Online" ? "Online" : "COD";
+
+        if (paymentMode == "Online" && string.IsNullOrWhiteSpace(dto.RazorpayPaymentId))
+            return BadRequest("Payment verification required for online payment");
+
         var total = product.Price * dto.Quantity;
 
         var order = new Order
         {
             UserId = userId,
             TotalAmount = total,
-            OrderDate = DateTime.UtcNow
+            OrderDate = DateTime.UtcNow,
+            Status = "Pending",
+            DeliveryAddress = dto.DeliveryAddress,
+            PaymentMode = paymentMode,
+            PaymentStatus = paymentMode == "Online" ? "Paid" : "Pending",
+            RazorpayPaymentId = dto.RazorpayPaymentId
         };
 
         _context.Orders.Add(order);
@@ -160,7 +173,9 @@ public class PatientController : ControllerBase
         return Ok(new
         {
             OrderId = order.Id,
-            TotalAmount = total
+            TotalAmount = total,
+            PaymentMode = order.PaymentMode,
+            PaymentStatus = order.PaymentStatus
         });
     }
     [HttpGet("orders")]
@@ -169,10 +184,27 @@ public class PatientController : ControllerBase
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        var orders = _context.Orders
-            .Where(x => x.UserId == userId)
-            .OrderByDescending(x => x.OrderDate)
-            .ToList();
+        var orders = (
+            from o in _context.Orders
+            where o.UserId == userId
+            join oi in _context.OrderItems on o.Id equals oi.OrderId into items
+            from oi in items.DefaultIfEmpty()
+            join p in _context.Products on oi.ProductId equals p.Id into products
+            from p in products.DefaultIfEmpty()
+            orderby o.OrderDate descending
+            select new
+            {
+                o.Id,
+                o.TotalAmount,
+                o.OrderDate,
+                o.Status,
+                o.DeliveryAddress,
+                o.PaymentMode,
+                o.PaymentStatus,
+                ProductName = p != null ? p.Name : null,
+                Quantity = oi != null ? oi.Quantity : 0
+            }
+        ).ToList();
 
         return Ok(orders);
     }
@@ -180,9 +212,16 @@ public class PatientController : ControllerBase
     public IActionResult GetAmbulances()
     {
         return Ok(
-            _context.Ambulances
-                .Where(x => x.IsAvailable)
-                .ToList());
+           _context.Ambulances
+    .Select(x => new
+    {
+        x.Id,
+        x.DriverName,
+        x.VehicleNumber,
+        x.Type,
+        x.IsAvailable
+    })
+    .ToList());
     }
     [HttpPost("ambulance-request")]
     public IActionResult RequestAmbulance(CreateAmbulanceRequestDto dto)

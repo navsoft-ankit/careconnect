@@ -1,17 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 
-const STATUS_STYLES = {
+const PAYMENT_STYLES = {
     Paid: "bg-green-100 text-green-700",
     Pending: "bg-amber-100 text-amber-700",
     Failed: "bg-red-100 text-red-600",
-    Refunded: "bg-blue-100 text-blue-700",
 };
 
-const DELIVERY_STYLES = {
-    "Free Shipping": "text-green-600",
-    "Express": "text-blue-600",
-    "Standard": "text-gray-500",
+const STATUS_STYLES = {
+    Pending: "bg-amber-100 text-amber-700",
+    Confirmed: "bg-blue-100 text-blue-700",
+    Delivered: "bg-green-100 text-green-700",
+    Cancelled: "bg-red-100 text-red-600",
 };
 
 function Skeleton() {
@@ -34,7 +34,7 @@ function Skeleton() {
     );
 }
 
-const TABS = ["All", "Shipped", "Ready to Ship", "Sent", "Completed", "Cancellation", "Returns"];
+const TABS = ["All", "Pending", "Confirmed", "Delivered", "Cancelled"];
 
 export default function Orders() {
     const [orders, setOrders] = useState([]);
@@ -63,18 +63,29 @@ export default function Orders() {
 
     const filteredOrders = useMemo(() => {
         let result = orders;
-        if (search.trim()) result = result.filter((o) => String(o.id).includes(search.trim()) || o.productName?.toLowerCase().includes(search.toLowerCase()));
-        if (activeTab !== "All") result = result.filter((o) => o.deliveryStatus === activeTab);
+        if (search.trim()) {
+            result = result.filter(
+                (o) =>
+                    String(o.id).includes(search.trim()) ||
+                    o.productName?.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+        if (activeTab !== "All") result = result.filter((o) => o.status === activeTab);
         return result;
     }, [orders, search, activeTab]);
 
-    const stats = useMemo(() => ({
-        today: orders.filter((o) => new Date(o.orderDate).toDateString() === new Date().toDateString()).length,
-        total: orders.length,
-        returned: orders.filter((o) => o.deliveryStatus === "Returns").length,
-        failed: orders.filter((o) => o.paymentStatus === "Failed").length,
-        totalSpent: orders.reduce((s, o) => s + (o.totalAmount || 0), 0),
-    }), [orders]);
+    const stats = useMemo(
+        () => ({
+            today: orders.filter(
+                (o) => new Date(o.orderDate).toDateString() === new Date().toDateString()
+            ).length,
+            total: orders.length,
+            cancelled: orders.filter((o) => o.status === "Cancelled").length,
+            failed: orders.filter((o) => o.paymentStatus === "Failed").length,
+            totalSpent: orders.reduce((s, o) => s + (o.totalAmount || 0), 0),
+        }),
+        [orders]
+    );
 
     return (
         <div className="min-h-screen bg-[#F8F7F4]">
@@ -86,20 +97,12 @@ export default function Orders() {
                         <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
                         <p className="text-gray-500 text-sm mt-1">View all your medicine purchase history</p>
                     </div>
-                    <div className="flex gap-2">
-                        <button className="h-9 px-4 rounded-lg border border-gray-200 bg-white text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
-                            ↑ Export
-                        </button>
-                        <button className="h-9 px-4 rounded-lg border border-gray-200 bg-white text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
-                            ⋯ More actions
-                        </button>
-                        <a
-                            href="/patient/products"
-                            className="h-9 px-4 rounded-lg bg-[#16332B] text-white text-sm font-medium hover:bg-[#0F231D] flex items-center gap-2 transition"
-                        >
-                            + Create Order
-                        </a>
-                    </div>
+                    <a
+                        href="/patient/products"
+                        className="h-9 px-4 rounded-lg bg-[#16332B] text-white text-sm font-medium hover:bg-[#0F231D] flex items-center gap-2 transition"
+                    >
+                        + Order medicine
+                    </a>
                 </div>
 
                 {/* Stats Row */}
@@ -108,8 +111,8 @@ export default function Orders() {
                         {[
                             { label: "Today", value: stats.today, color: "text-gray-900" },
                             { label: "Total Orders", value: stats.total, color: "text-gray-900" },
-                            { label: "Returns", value: stats.returned, color: "text-amber-600" },
-                            { label: "Failed", value: stats.failed, color: "text-red-600" },
+                            { label: "Cancelled", value: stats.cancelled, color: "text-red-600" },
+                            { label: "Failed payments", value: stats.failed, color: "text-amber-600" },
                             { label: "Total Spent", value: `₹${stats.totalSpent}`, color: "text-[#16332B]" },
                         ].map((s) => (
                             <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
@@ -141,8 +144,8 @@ export default function Orders() {
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
                                     className={`px-4 py-3.5 text-sm font-medium whitespace-nowrap transition border-b-2 ${activeTab === tab
-                                            ? "border-[#16332B] text-[#16332B]"
-                                            : "border-transparent text-gray-500 hover:text-gray-700"
+                                        ? "border-[#16332B] text-[#16332B]"
+                                        : "border-transparent text-gray-500 hover:text-gray-700"
                                         }`}
                                 >
                                     {tab}
@@ -157,13 +160,10 @@ export default function Orders() {
                                 <input
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    placeholder="Search orders..."
-                                    className="h-9 pl-8 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 bg-gray-50 w-52"
+                                    placeholder="Search by order ID or medicine"
+                                    className="h-9 pl-8 pr-4 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 bg-gray-50 w-60"
                                 />
                             </div>
-                            <button className="h-9 px-4 rounded-lg border border-gray-200 text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
-                                ⊟ Filter
-                            </button>
                         </div>
 
                         {/* Table */}
@@ -171,26 +171,20 @@ export default function Orders() {
                             <table className="w-full text-sm text-left">
                                 <thead>
                                     <tr className="text-xs text-gray-500 border-b border-gray-50">
-                                        <th className="px-5 py-3 font-medium w-8">
-                                            <input type="checkbox" className="rounded" />
-                                        </th>
                                         <th className="px-5 py-3 font-medium">Order</th>
                                         <th className="px-5 py-3 font-medium">Date</th>
                                         <th className="px-5 py-3 font-medium">Total</th>
                                         <th className="px-5 py-3 font-medium">Payment</th>
                                         <th className="px-5 py-3 font-medium">Items</th>
-                                        <th className="px-5 py-3 font-medium">Delivery</th>
+                                        <th className="px-5 py-3 font-medium">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredOrders.map((o) => (
                                         <tr
                                             key={o.id}
-                                            className="border-t border-gray-50 hover:bg-gray-50/60 cursor-pointer group"
+                                            className="border-t border-gray-50 hover:bg-gray-50/60 group"
                                         >
-                                            <td className="px-5 py-4">
-                                                <input type="checkbox" className="rounded" />
-                                            </td>
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-sm shrink-0">
@@ -201,7 +195,9 @@ export default function Orders() {
                                                             #{o.id}
                                                         </p>
                                                         {o.productName && (
-                                                            <p className="text-xs text-gray-400 truncate max-w-[140px]">{o.productName}</p>
+                                                            <p className="text-xs text-gray-400 truncate max-w-[140px]">
+                                                                {o.productName}
+                                                            </p>
                                                         )}
                                                     </div>
                                                 </div>
@@ -219,15 +215,28 @@ export default function Orders() {
                                                 ₹{o.totalAmount}
                                             </td>
                                             <td className="px-5 py-4">
-                                                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[o.paymentStatus] || "bg-gray-100 text-gray-600"}`}>
+                                                <span
+                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                        PAYMENT_STYLES[o.paymentStatus] || "bg-gray-100 text-gray-600"
+                                                    }`}
+                                                >
                                                     {o.paymentStatus || "—"}
                                                 </span>
+                                                <p className="text-[11px] text-gray-400 mt-1">
+                                                    {o.paymentMode === "Online" ? "Paid online" : "Cash on delivery"}
+                                                </p>
                                             </td>
                                             <td className="px-5 py-4 text-gray-500">
                                                 {o.quantity || 1} item{o.quantity > 1 ? "s" : ""}
                                             </td>
-                                            <td className={`px-5 py-4 text-xs font-medium ${DELIVERY_STYLES[o.deliveryMethod] || "text-gray-500"}`}>
-                                                {o.deliveryMethod || "Free Shipping"}
+                                            <td className="px-5 py-4">
+                                                <span
+                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                                                        STATUS_STYLES[o.status] || "bg-gray-100 text-gray-600"
+                                                    }`}
+                                                >
+                                                    {o.status || "Pending"}
+                                                </span>
                                             </td>
                                         </tr>
                                     ))}
