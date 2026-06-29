@@ -244,9 +244,8 @@ export default function Orders() {
                                             </td>
                                             <td className="px-5 py-4">
                                                 <span
-                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                        PAYMENT_STYLES[o.paymentStatus] || "bg-[#EFEAE0] text-[#16332B]/55"
-                                                    }`}
+                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${PAYMENT_STYLES[o.paymentStatus] || "bg-[#EFEAE0] text-[#16332B]/55"
+                                                        }`}
                                                 >
                                                     {o.paymentStatus || "—"}
                                                 </span>
@@ -261,9 +260,8 @@ export default function Orders() {
                                             </td>
                                             <td className="px-5 py-4">
                                                 <span
-                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                                        STATUS_STYLES[o.status] || "bg-[#EFEAE0] text-[#16332B]/55"
-                                                    }`}
+                                                    className={`px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLES[o.status] || "bg-[#EFEAE0] text-[#16332B]/55"
+                                                        }`}
                                                 >
                                                     {o.status || "Pending"}
                                                 </span>

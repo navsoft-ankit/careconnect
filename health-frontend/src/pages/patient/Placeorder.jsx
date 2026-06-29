@@ -45,9 +45,8 @@ function StepHeader({ step, productName }) {
                 {STEPS.map((s, i) => (
                     <div
                         key={s}
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${
-                            i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
-                        }`}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
+                            }`}
                     />
                 ))}
             </div>
@@ -247,11 +246,10 @@ export default function PlaceOrder() {
                                 <div className="space-y-3">
                                     <button
                                         onClick={() => setPaymentMode("COD")}
-                                        className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${
-                                            paymentMode === "COD"
+                                        className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${paymentMode === "COD"
                                                 ? "border-[#16332B] bg-[#F8F6F0]"
                                                 : "border-[#E7E2D6] hover:border-[#16332B]/30"
-                                        }`}
+                                            }`}
                                     >
                                         <FiTruck className="text-[#16332B] shrink-0" size={20} />
                                         <div>
@@ -266,11 +264,10 @@ export default function PlaceOrder() {
 
                                     <button
                                         onClick={() => setPaymentMode("Online")}
-                                        className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${
-                                            paymentMode === "Online"
+                                        className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${paymentMode === "Online"
                                                 ? "border-[#16332B] bg-[#F8F6F0]"
                                                 : "border-[#E7E2D6] hover:border-[#16332B]/30"
-                                        }`}
+                                            }`}
                                     >
                                         <FiCreditCard className="text-[#16332B] shrink-0" size={20} />
                                         <div>
@@ -299,10 +296,10 @@ export default function PlaceOrder() {
                                     {paying
                                         ? "Opening payment…"
                                         : submitting
-                                        ? "Placing order…"
-                                        : paymentMode === "Online"
-                                        ? `Pay ₹${totalAmount}`
-                                        : "Place order"}
+                                            ? "Placing order…"
+                                            : paymentMode === "Online"
+                                                ? `Pay ₹${totalAmount}`
+                                                : "Place order"}
                                 </button>
                             </div>
                         )}

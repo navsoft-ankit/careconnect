@@ -86,9 +86,8 @@ function StepHeader({ step, driverName }) {
                 {STEPS.map((s, i) => (
                     <div
                         key={s}
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${
-                            i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
-                        }`}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
+                            }`}
                     />
                 ))}
             </div>
@@ -323,11 +322,10 @@ export default function AmbulanceRequest() {
                                         <button
                                             key={d.key}
                                             onClick={() => setDestinationKey(d.key)}
-                                            className={`w-full text-left rounded-xl border p-4 transition ${
-                                                destinationKey === d.key
+                                            className={`w-full text-left rounded-xl border p-4 transition ${destinationKey === d.key
                                                     ? "border-[#16332B] bg-[#F8F6F0]"
                                                     : "border-[#E7E2D6] hover:border-[#16332B]/30"
-                                            }`}
+                                                }`}
                                         >
                                             <p className="text-sm font-medium text-[#16332B]">{d.label}</p>
                                             {d.address && (
@@ -391,11 +389,10 @@ export default function AmbulanceRequest() {
                                         <button
                                             key={v.key}
                                             onClick={() => setVehicleType(v.key)}
-                                            className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${
-                                                vehicleType === v.key
+                                            className={`w-full text-left rounded-xl border p-4 flex items-center gap-4 transition ${vehicleType === v.key
                                                     ? "border-[#16332B] bg-[#F8F6F0]"
                                                     : "border-[#E7E2D6] hover:border-[#16332B]/30"
-                                            }`}
+                                                }`}
                                         >
                                             <span className="text-2xl shrink-0">{v.icon}</span>
                                             <div className="flex-1">

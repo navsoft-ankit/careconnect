@@ -61,9 +61,8 @@ function StepHeader({ step, doctorName }) {
                 {STEPS.map((s, i) => (
                     <div
                         key={s}
-                        className={`h-1.5 flex-1 rounded-full transition-colors ${
-                            i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
-                        }`}
+                        className={`h-1.5 flex-1 rounded-full transition-colors ${i <= step ? "bg-[#16332B]" : "bg-[#E7E2D6]"
+                            }`}
                     />
                 ))}
             </div>
@@ -232,7 +231,7 @@ export default function BookAppointment() {
                         </button>
                     )}
 
-                   <div className="bg-white rounded-3xl shadow-lg border border-[#E7E2D6] p-8 lg:p-12 min-h-[80vh]">
+                    <div className="bg-white rounded-3xl shadow-lg border border-[#E7E2D6] p-8 lg:p-12 min-h-[80vh]">
 
                         <StepHeader step={step} doctorName={doctor?.name} />
 
@@ -261,26 +260,26 @@ export default function BookAppointment() {
                                 )}
 
                                 {!loadingSlots && slots.length > 0 && (
-<div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">                                        {slots.map((slot) => (
-                                            <button
-                                                key={slot.id}
-                                                onClick={() => goToConfirm(slot)}
-                                                className="text-left rounded-xl border border-[#E7E2D6] hover:border-[#16332B] hover:bg-[#F8F6F0] p-3.5 transition group"
-                                            >
-                                                <div className="flex items-center gap-1.5 text-[#16332B]">
-                                                    <FiCalendar size={13} />
-                                                    <span className="text-xs font-semibold">
-                                                        {formatSlotDate(slot.availableFrom)}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 mt-1.5 text-[#6B6458]">
-                                                    <FiClock size={13} />
-                                                    <span className="text-sm font-medium">
-                                                        {formatSlotTime(slot.availableFrom)}
-                                                    </span>
-                                                </div>
-                                            </button>
-                                        ))}
+                                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">                                        {slots.map((slot) => (
+                                        <button
+                                            key={slot.id}
+                                            onClick={() => goToConfirm(slot)}
+                                            className="text-left rounded-xl border border-[#E7E2D6] hover:border-[#16332B] hover:bg-[#F8F6F0] p-3.5 transition group"
+                                        >
+                                            <div className="flex items-center gap-1.5 text-[#16332B]">
+                                                <FiCalendar size={13} />
+                                                <span className="text-xs font-semibold">
+                                                    {formatSlotDate(slot.availableFrom)}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 mt-1.5 text-[#6B6458]">
+                                                <FiClock size={13} />
+                                                <span className="text-sm font-medium">
+                                                    {formatSlotTime(slot.availableFrom)}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    ))}
                                     </div>
                                 )}
                             </div>

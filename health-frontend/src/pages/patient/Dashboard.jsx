@@ -689,7 +689,7 @@ export default function Dashboard() {
                 <div className="border-t border-white/10 py-6 text-center text-white/50 font-[system-ui,sans-serif] text-sm">
                     © 2026 care. All Rights Reserved.
                 </div>
-                
+
             </footer>
 
         </div>

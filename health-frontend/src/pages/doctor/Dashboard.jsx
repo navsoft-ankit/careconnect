@@ -1186,8 +1186,8 @@ export default function DoctorDashboard() {
                   <div
                     key={item.day}
                     className={`rounded-2xl border p-5 transition ${item.available
-                        ? "border-green-300 bg-green-50"
-                        : "border-slate-200 bg-white"
+                      ? "border-green-300 bg-green-50"
+                      : "border-slate-200 bg-white"
                       }`}
                   >
 
@@ -1212,15 +1212,15 @@ export default function DoctorDashboard() {
                           toggleAvailability(item.day)
                         }
                         className={`relative w-14 h-8 rounded-full transition ${item.available
-                            ? "bg-green-500"
-                            : "bg-slate-300"
+                          ? "bg-green-500"
+                          : "bg-slate-300"
                           }`}
                       >
 
                         <span
                           className={`absolute top-1 h-6 w-6 rounded-full bg-white transition-all ${item.available
-                              ? "left-7"
-                              : "left-1"
+                            ? "left-7"
+                            : "left-1"
                             }`}
                         />
 

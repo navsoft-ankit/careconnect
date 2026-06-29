@@ -140,21 +140,19 @@ export default function Products() {
                                 <button
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
-                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition ${
-                                        isActive
+                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition ${isActive
                                             ? "bg-[#16332B] text-white"
                                             : "bg-white border border-[#E4DFD3] text-[#16332B]/60 hover:border-[#16332B]/30"
-                                    }`}
+                                        }`}
                                 >
                                     {cat}
                                     {/* show count badge — grey when inactive, white when active */}
                                     {!loading && (
                                         <span
-                                            className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${
-                                                isActive
+                                            className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${isActive
                                                     ? "bg-white/20 text-white"
                                                     : "bg-[#EFEAE0] text-[#16332B]/50"
-                                            }`}
+                                                }`}
                                         >
                                             {count}
                                         </span>
@@ -311,11 +309,10 @@ export default function Products() {
                                         <button
                                             onClick={() => goToOrder(p)}
                                             disabled={p.stock === 0}
-                                            className={`flex-1 h-8 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold transition ${
-                                                p.stock === 0
+                                            className={`flex-1 h-8 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold transition ${p.stock === 0
                                                     ? "bg-[#EFEAE0] text-[#16332B]/35 cursor-not-allowed"
                                                     : "bg-[#16332B] hover:bg-[#0F231D] text-white"
-                                            }`}
+                                                }`}
                                         >
                                             <ShoppingCart size={12} />
                                             Order

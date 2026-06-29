@@ -33,18 +33,18 @@ export default function Doctors() {
   const createDoctor = async () => {
     try {
       const payload = {
-  fullName: form.fullName,
-  email: form.email,
-  password: form.password,
-  specialization: form.specialization,
-  hospitalName: form.hospitalName,
-  fee: Number(form.fee), // Convert to decimal
-  about: form.about
-};
+        fullName: form.fullName,
+        email: form.email,
+        password: form.password,
+        specialization: form.specialization,
+        hospitalName: form.hospitalName,
+        fee: Number(form.fee), // Convert to decimal
+        about: form.about
+      };
 
-console.log(payload);
+      console.log(payload);
 
-await api.post("/admin/doctor", payload);
+      await api.post("/admin/doctor", payload);
       alert("Doctor created");
 
       setForm({
@@ -61,11 +61,11 @@ await api.post("/admin/doctor", payload);
       loadDoctors();
 
     } catch (err) {
-  console.log("Status:", err.response?.status);
-  console.log("Response:", err.response?.data);
+      console.log("Status:", err.response?.status);
+      console.log("Response:", err.response?.data);
 
-  alert(JSON.stringify(err.response?.data, null, 2));
-}
+      alert(JSON.stringify(err.response?.data, null, 2));
+    }
   };
 
   const remove = async (id) => {
@@ -104,13 +104,13 @@ await api.post("/admin/doctor", payload);
               <input name="specialization" onChange={handleChange} placeholder="Specialization" className="input w-full mb-2" />
               <input name="hospitalName" onChange={handleChange} placeholder="Hospital Name" className="input w-full mb-2" />
               <input
-  type="number"
-  name="fee"
-  value={form.fee}
-  onChange={handleChange}
-  placeholder="Fee"
-  className="input w-full mb-2"
-/>
+                type="number"
+                name="fee"
+                value={form.fee}
+                onChange={handleChange}
+                placeholder="Fee"
+                className="input w-full mb-2"
+              />
               <textarea name="about" onChange={handleChange} placeholder="About" className="input w-full mb-2" />
 
               <button

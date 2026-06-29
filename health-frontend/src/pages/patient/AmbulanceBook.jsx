@@ -228,14 +228,12 @@ export default function Ambulance() {
                                                         </p>
                                                         <div className="flex items-center gap-1.5 mt-2">
                                                             <span
-                                                                className={`w-1.5 h-1.5 rounded-full ${
-                                                                    amb.isAvailable === false ? "bg-[#A8A192]" : "bg-[#3E7C59]"
-                                                                }`}
+                                                                className={`w-1.5 h-1.5 rounded-full ${amb.isAvailable === false ? "bg-[#A8A192]" : "bg-[#3E7C59]"
+                                                                    }`}
                                                             />
                                                             <span
-                                                                className={`text-[12px] font-medium ${
-                                                                    amb.isAvailable === false ? "text-[#16332B]/40" : "text-[#3E7C59]"
-                                                                }`}
+                                                                className={`text-[12px] font-medium ${amb.isAvailable === false ? "text-[#16332B]/40" : "text-[#3E7C59]"
+                                                                    }`}
                                                             >
                                                                 {amb.isAvailable === false ? "Currently dispatched" : "Available now"}
                                                             </span>
@@ -245,11 +243,10 @@ export default function Ambulance() {
                                                     <button
                                                         disabled={amb.isAvailable === false}
                                                         onClick={() => goToBooking(amb)}
-                                                        className={`shrink-0 flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] font-semibold transition ${
-                                                            amb.isAvailable === false
+                                                        className={`shrink-0 flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] font-semibold transition ${amb.isAvailable === false
                                                                 ? "bg-[#EFEAE0] text-[#A8A192] cursor-not-allowed"
                                                                 : "bg-[#16332B] text-white hover:bg-[#0F231D]"
-                                                        }`}
+                                                            }`}
                                                     >
                                                         {amb.isAvailable === false ? (
                                                             "Unavailable"
