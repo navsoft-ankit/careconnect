@@ -5,12 +5,33 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 
+// Stock fallback photos — keyed by doctor.id so the same doctor always
+// gets the same photo, regardless of list order/filtering.
+const STOCK_IMAGES = [
+    "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&q=80",
+    "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&q=80",
+    "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&q=80",
+    "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&q=80",
+];
+
+function getStockImage(doctorId) {
+    const idx = doctorId % STOCK_IMAGES.length;
+    return STOCK_IMAGES[idx];
+}
+
+// Some doctor names already include "Dr." (e.g. from how they were created
+// in the admin panel), others don't. This avoids "Dr. Dr. Ananya Sen".
+function displayDoctorName(name) {
+    if (!name) return "";
+    return /^dr\.?\s/i.test(name) ? name : `Dr. ${name}`;
+}
+
 export default function Dashboard() {
     const [doctors, setDoctors] = useState([]);
     const [appointments, setAppointments] = useState([]);
     const [orders, setOrders] = useState([]);
-    const [searchInput, setSearchInput] = useState("");
     const [search, setSearch] = useState("");
+    const [specialization, setSpecialization] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
 
     const navigate = useNavigate();
@@ -35,32 +56,21 @@ export default function Dashboard() {
             console.log(err);
         }
     };
-    const displayDoctorName = (name = "") => {
-        return name.trim().toLowerCase().startsWith("dr.")
-            ? name.trim()
-            : `Dr. ${name.trim()}`;
+
+    const filteredDoctors = doctors.filter((d) =>
+        (d.name || "").toLowerCase().includes(search.toLowerCase())
+    );
+
+    // Sends the search box + specialization dropdown to the full Doctors page,
+    // carrying the values along as query params.
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (search.trim()) params.set("search", search.trim());
+        if (specialization && specialization !== "All Specializations") {
+            params.set("specialization", specialization);
+        }
+        navigate(`/patient/doctors?${params.toString()}`);
     };
-
-    const getInitials = (name = "") => {
-        return name
-            .replace(/^dr\.?\s*/i, "")
-            .split(" ")
-            .filter(Boolean)
-            .slice(0, 2)
-            .map((n) => n[0].toUpperCase())
-            .join("");
-    };
-
-    const filteredDoctors = doctors.filter((doctor) => {
-        if (!search.trim()) return true;
-
-        const keyword = search.toLowerCase();
-
-        return (
-            (doctor.name || "").toLowerCase().includes(keyword) ||
-            (doctor.specialization || "").toLowerCase().includes(keyword)
-        );
-    });
 
     return (
         <div className="min-h-screen bg-[#FAF8F3] text-[#16332B] font-[Georgia,serif]">
@@ -75,14 +85,14 @@ export default function Dashboard() {
                     </div>
 
                     <nav className="hidden lg:flex items-center gap-9 font-[system-ui,sans-serif] text-[15px] text-[#16332B]/80">
-                        <a href="/patient/ambulance" className="hover:text-[#16332B] transition">Emergency Info</a>
-                        <a href="/patient/doctors" className="hover:text-[#16332B] transition">Locations</a>
+                        <a href="/patient/EmergencyInfo" className="hover:text-[#16332B] transition">Emergency Info</a>
+                        <a href="/patient/Locations" className="hover:text-[#16332B] transition">Locations</a>
                         <a href="/patient/orders" className="hover:text-[#16332B] transition">Orders</a>
                         <a href="#" className="flex items-center gap-1 hover:text-[#16332B] transition">
                             For You <span className="text-xs">▾</span>
                         </a>
                         <a href="/patient/AboutUs" className="flex items-center gap-1 hover:text-[#16332B] transition">
-                            About Us <span className="text-xs">▾</span>
+                            AboutUs <span className="text-xs">▾</span>
                         </a>
                         <a href="#" className="flex items-center gap-1 hover:text-[#16332B] transition">
                             For Business <span className="text-xs">▾</span>
@@ -219,27 +229,26 @@ export default function Dashboard() {
                         <input
                             type="text"
                             placeholder="Search by doctor name..."
-                            value={searchInput}
-                            onChange={(e) => {
-                                console.log("Typing:", e.target.value);
-                                setSearchInput(e.target.value);
-                            }}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                             className="border border-[#E4DFD3] rounded-full px-6 py-4 outline-none focus:ring-2 focus:ring-[#16332B]/30 bg-[#FAF8F3]"
                         />
 
-                        <select className="border border-[#E4DFD3] rounded-full px-6 py-4 bg-[#FAF8F3] outline-none focus:ring-2 focus:ring-[#16332B]/30">
-                            <option>All Specializations</option>
-                            <option>Cardiology</option>
-                            <option>Neurology</option>
-                            <option>Orthopedic</option>
-                            <option>Dermatology</option>
+                        <select
+                            value={specialization}
+                            onChange={(e) => setSpecialization(e.target.value)}
+                            className="border border-[#E4DFD3] rounded-full px-6 py-4 bg-[#FAF8F3] outline-none focus:ring-2 focus:ring-[#16332B]/30"
+                        >
+                            <option value="">All Specializations</option>
+                            <option value="Cardiology">Cardiology</option>
+                            <option value="Neurology">Neurology</option>
+                            <option value="Orthopedic">Orthopedic</option>
+                            <option value="Dermatology">Dermatology</option>
                         </select>
+
                         <button
-                            type="button"
-                            onClick={() => {
-                                console.log("SearchInput =", searchInput);
-                                setSearch(searchInput.trim());
-                            }}
+                            onClick={handleSearch}
                             className="bg-[#16332B] text-white rounded-full font-medium px-8 hover:bg-[#0F231D] transition"
                         >
                             Search
@@ -396,55 +405,40 @@ export default function Dashboard() {
                     </div>
                 ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {filteredDoctors.slice(0, 4).map((doctor, i) => {
-                            const stockImages = [
-                                "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=500&q=80",
-                                "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=500&q=80",
-                                "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=500&q=80",
-                                "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=500&q=80",
-                            ];
-                            return (
-                                <div
-                                    key={doctor.id}
-                                    className="bg-white rounded-2xl border border-[#E4DFD3] overflow-hidden hover:shadow-md transition"
-                                >
-                                    <div className="w-full h-56 bg-[#16332B] flex items-center justify-center">
-                                        {doctor.image ? (
-                                            <img
-                                                src={doctor.image}
-                                                alt={doctor.fullName}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-24 h-24 rounded-full bg-white text-[#16332B] flex items-center justify-center text-3xl font-bold shadow-lg">
-                                                {getInitials(doctor.fullName || doctor.name)}
-                                            </div>
-                                        )}
+                        {filteredDoctors.slice(0, 4).map((doctor) => (
+                            <div
+                                key={doctor.id}
+                                className="bg-white rounded-2xl border border-[#E4DFD3] overflow-hidden hover:shadow-md transition"
+                            >
+                                <img
+                                    src={doctor.image || getStockImage(doctor.id)}
+                                    className="w-full h-56 object-cover"
+                                    alt={displayDoctorName(doctor.name)}
+                                />
+
+                                <div className="p-6 font-[system-ui,sans-serif]">
+                                    <h3 className="text-lg font-semibold font-[Georgia,serif]">
+                                        {displayDoctorName(doctor.name)}
+                                    </h3>
+
+                                    <p className="text-[#16332B]/60 mt-1 text-sm">
+                                        {doctor.specialization}
+                                    </p>
+
+                                    <div className="flex items-center mt-3 text-sm">
+                                        <span className="text-[#B5562C]">★★★★★</span>
+                                        <span className="ml-2 text-[#16332B]/50">(4.9)</span>
                                     </div>
-                                    <div className="p-6 font-[system-ui,sans-serif]">
-                                        <h3 className="text-lg font-semibold font-[Georgia,serif]">
-                                            {doctor.name}
-                                        </h3>
 
-                                        <p className="text-[#16332B]/60 mt-1 text-sm">
-                                            {doctor.specialization}
-                                        </p>
-
-                                        <div className="flex items-center mt-3 text-sm">
-                                            <span className="text-[#B5562C]">★★★★★</span>
-                                            <span className="ml-2 text-[#16332B]/50">(4.9)</span>
-                                        </div>
-
-                                        <Link
-                                            to={`/patient/bookdoctor?doctorId=${doctor.id}`}
-                                            className="block mt-5 bg-[#16332B] text-white text-center py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
-                                        >
-                                            Book Appointment
-                                        </Link>
-                                    </div>
+                                    <Link
+                                        to={`/patient/bookdoctor?doctorId=${doctor.id}`}
+                                        className="block mt-5 bg-[#16332B] text-white text-center py-3 rounded-full font-medium hover:bg-[#0F231D] transition"
+                                    >
+                                        Book Appointment
+                                    </Link>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        ))}
                     </div>
                 )}
             </section>
@@ -478,7 +472,7 @@ export default function Dashboard() {
                                     className="border border-[#E4DFD3] rounded-2xl p-6 hover:border-[#16332B]/40 transition"
                                 >
                                     <h3 className="text-lg font-semibold font-[Georgia,serif]">
-                                        Dr. {a.doctorName || a.doctorId}
+                                        {displayDoctorName(a.doctorName) || a.doctorId}
                                     </h3>
 
                                     <p className="text-[#16332B]/60 mt-2 text-sm">

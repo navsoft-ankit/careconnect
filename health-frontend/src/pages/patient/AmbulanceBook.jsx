@@ -2,31 +2,35 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import {
-    FiSearch,
-    FiMapPin,
-    FiPhoneCall,
-    FiTruck,
-} from "react-icons/fi";
+    Search,
+    MapPin,
+    PhoneCall,
+    Truck,
+    Snowflake,
+    Siren,
+    ArrowRight,
+} from "lucide-react";
 import { toast, Toaster } from "react-hot-toast";
 
+// Matches the real VehicleType values stored on Ambulance ("NonAC" | "AC" | "Big"),
+// not a hypothetical BLS/ALS classification that doesn't exist in the backend.
 const TYPE_META = {
-    "Basic Life Support": { tag: "BLS", note: "Standard emergency transport" },
-    "Advanced Life Support": { tag: "ALS", note: "Critical & trauma support" },
-    "Neonatal Care": { tag: "NICU", note: "Infant & newborn transport" },
+    NonAC: { tag: "Standard", note: "Stable, non-critical transport", icon: Truck },
+    AC: { tag: "Advanced", note: "Climate-controlled, longer transfers", icon: Snowflake },
+    Big: { tag: "Critical care", note: "Fully equipped for trauma cases", icon: Siren },
 };
 
 function getTypeMeta(type) {
-    return TYPE_META[type] || { tag: "BLS", note: "Standard emergency transport" };
+    return TYPE_META[type] || TYPE_META.NonAC;
 }
 
 function AmbulanceCardSkeleton() {
     return (
-        <div className="bg-white rounded-2xl border border-[#E7E2D6] p-4 flex items-center gap-4 animate-pulse">
-            <div className="w-16 h-16 rounded-xl bg-[#EFEAE0] shrink-0" />
+        <div className="bg-white rounded-[20px] border border-[#E4DFD3] p-5 flex items-center gap-4 animate-pulse">
+            <div className="w-14 h-14 rounded-xl bg-[#EFEAE0] shrink-0" />
             <div className="flex-1 space-y-2.5 min-w-0">
-                <div className="h-3.5 bg-[#EFEAE0] rounded w-32" />
-                <div className="h-3 bg-[#EFEAE0] rounded w-24" />
-                <div className="h-3 bg-[#EFEAE0] rounded w-20" />
+                <div className="h-3.5 bg-[#EFEAE0] rounded-full w-32" />
+                <div className="h-3 bg-[#EFEAE0] rounded-full w-24" />
             </div>
             <div className="w-20 h-10 bg-[#EFEAE0] rounded-full shrink-0" />
         </div>
@@ -39,9 +43,6 @@ export default function Ambulance() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
-    const [activeZone, setActiveZone] = useState("Local");
-
-    const zones = ["Local", "City", "District"];
 
     useEffect(() => {
         loadAmbulances();
@@ -76,83 +77,86 @@ export default function Ambulance() {
     });
 
     const grouped = filtered.reduce((acc, a) => {
-        const type = a.type || "Basic Life Support";
+        const type = a.type || "NonAC";
         if (!acc[type]) acc[type] = [];
         acc[type].push(a);
         return acc;
     }, {});
 
+    // Keep a sensible display order regardless of object key ordering.
+    const typeOrder = ["NonAC", "AC", "Big"];
+    const orderedGroups = typeOrder.filter((t) => grouped[t]?.length);
+
     const hasResults = filtered.length > 0;
+    const availableCount = ambulances.filter((a) => a.isAvailable !== false).length;
 
     return (
         <>
             <Toaster position="top-right" />
 
-            <div className="min-h-screen bg-[#F8F6F0]">
-                <div className="w-full max-w-7xl mx-auto px-6 lg:px-10 py-10">
+            <div className="min-h-screen bg-[#FAF8F3] text-[#16332B]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+                <div className="max-w-[1100px] mx-auto px-6 lg:px-10 py-16">
 
-                    {/* Header */}
-                    <div className="mb-7">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C9683F] uppercase tracking-wide">
-                            <FiTruck size={13} /> Emergency transport
-                        </span>
-                        <h1 className="text-[28px] font-serif font-semibold text-[#16332B] mt-2 leading-tight">
-                            Book an ambulance
+                    {/* ───────────────────── HEADER ───────────────────── */}
+                    <div className="mb-10">
+                        <p className="text-[13px] uppercase tracking-[0.22em] text-[#B5562C] font-semibold mb-5">
+                            Emergency transport
+                        </p>
+                        <h1
+                            style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                            className="leading-[1.05] tracking-tight"
+                        >
+                            <span style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)" }}>
+                                Help is closer
+                            </span>
+                            <br />
+                            <span
+                                className="italic text-[#3E7C59]"
+                                style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)" }}
+                            >
+                                than it feels.
+                            </span>
                         </h1>
-                        <p className="text-[#6B6458] text-sm mt-1.5">
-                            Find a nearby driver and dispatch help in minutes.
+                        <p className="mt-5 max-w-md text-[16px] leading-7 text-[#16332B]/60">
+                            {availableCount} ambulance{availableCount === 1 ? "" : "s"} ready to dispatch
+                            right now. Pick a driver below, or call the emergency line directly.
                         </p>
                     </div>
 
-                    {/* Emergency banner — kept high-visibility red as a safety convention */}
+                    {/* ───────────────────── EMERGENCY BANNER ─────────────────────
+                        Kept as high-contrast red — this is the one place on the
+                        platform where the editorial palette should step aside
+                        for an unambiguous safety signal. */}
                     <a
                         href="tel:108"
-                        className="flex items-center gap-4 bg-[#B3261E] rounded-2xl p-5 text-white mb-7 hover:bg-[#9E211A] transition group"
+                        className="flex items-center gap-4 bg-[#9E211A] rounded-[20px] p-5 text-white mb-10 hover:bg-[#86190F] transition group"
                     >
                         <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center shrink-0">
-                            <FiPhoneCall size={20} />
+                            <PhoneCall size={18} />
                         </div>
                         <div className="flex-1">
-                            <p className="font-semibold leading-tight">Life-threatening emergency?</p>
-                            <p className="text-white/80 text-sm mt-0.5">Call 108 directly — don't wait for booking</p>
+                            <p className="font-semibold leading-tight text-[15px]">Life-threatening emergency?</p>
+                            <p className="text-white/75 text-[13px] mt-0.5">Call 108 directly — don't wait for booking</p>
                         </div>
-                        <span className="shrink-0 bg-white text-[#B3261E] font-semibold px-4 py-2 rounded-full text-sm group-hover:bg-white/90 transition">
+                        <span className="shrink-0 bg-white text-[#9E211A] font-semibold px-5 py-2.5 rounded-full text-sm group-hover:bg-white/90 transition">
                             Call 108
                         </span>
                     </a>
 
-                    {/* Search */}
-                    <div className="relative mb-4">
-                        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8B8478]" size={16} />
+                    {/* ───────────────────── SEARCH ───────────────────── */}
+                    <div className="relative mb-10 max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#16332B]/35" size={16} />
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search by driver or vehicle number"
-                            className="w-full h-12 pl-11 pr-4 rounded-xl border border-[#E7E2D6] bg-white focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 focus:border-[#16332B] text-sm placeholder:text-[#A8A192] transition"
+                            className="w-full h-12 pl-11 pr-4 rounded-full border border-[#E4DFD3] bg-white focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 text-sm placeholder:text-[#16332B]/35 transition"
                         />
                     </div>
 
-                    {/* Zone tabs */}
-                    <div className="flex gap-2 mb-7">
-                        {zones.map((zone) => (
-                            <button
-                                key={zone}
-                                onClick={() => setActiveZone(zone)}
-                                className={`flex items-center gap-1.5 px-4 h-10 rounded-full text-sm font-medium transition ${
-                                    activeZone === zone
-                                        ? "bg-[#16332B] text-white"
-                                        : "bg-white border border-[#E7E2D6] text-[#6B6458] hover:border-[#16332B]/30"
-                                }`}
-                            >
-                                <FiMapPin size={13} />
-                                {zone}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* Error */}
+                    {/* ───────────────────── ERROR ───────────────────── */}
                     {error && (
-                        <div className="mb-6 bg-[#FBEAE5] border border-[#E8B8AA] rounded-2xl p-4 flex items-center justify-between gap-3">
+                        <div className="mb-8 bg-[#FBEAE5] border border-[#E8B8AA] rounded-2xl p-4 flex items-center justify-between gap-3">
                             <p className="text-[#9E3A20] text-sm">{error}</p>
                             <button
                                 onClick={loadAmbulances}
@@ -163,41 +167,47 @@ export default function Ambulance() {
                         </div>
                     )}
 
-                    {/* Loading */}
+                    {/* ───────────────────── LOADING ───────────────────── */}
                     {loading && (
                         <div className="space-y-3">
-                            {[1, 2, 3, 4].map((i) => (
+                            {[1, 2, 3].map((i) => (
                                 <AmbulanceCardSkeleton key={i} />
                             ))}
                         </div>
                     )}
 
-                    {/* Results */}
+                    {/* ───────────────────── RESULTS, grouped by vehicle type ───────────────────── */}
                     {!loading && hasResults && (
-                        <div className="space-y-7">
-                            {Object.entries(grouped).map(([type, list]) => {
+                        <div className="space-y-10">
+                            {orderedGroups.map((type) => {
                                 const meta = getTypeMeta(type);
+                                const list = grouped[type];
+                                const Icon = meta.icon;
                                 return (
                                     <section key={type}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="text-[10px] font-bold tracking-wider text-white bg-[#16332B] rounded px-1.5 py-0.5">
+                                        <div className="flex items-baseline justify-between mb-4 pb-3 border-b border-[#E4DFD3]">
+                                            <div className="flex items-center gap-3">
+                                                <Icon size={17} className="text-[#3E7C59]" strokeWidth={1.75} />
+                                                <h2
+                                                    style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                                                    className="text-[1.25rem]"
+                                                >
                                                     {meta.tag}
-                                                </span>
-                                                <h2 className="font-semibold text-[#16332B] text-[15px]">
-                                                    {type}
                                                 </h2>
+                                                <span className="text-[13px] text-[#16332B]/45">{meta.note}</span>
                                             </div>
-                                            <span className="text-xs text-[#A8A192]">{list.length} available</span>
+                                            <span className="text-[13px] text-[#16332B]/45 shrink-0">
+                                                {list.length} available
+                                            </span>
                                         </div>
 
                                         <div className="space-y-3">
                                             {list.map((amb) => (
                                                 <div
                                                     key={amb.id}
-                                                    className="bg-white rounded-2xl border border-[#E7E2D6] p-4 flex items-center gap-4 hover:border-[#16332B]/25 hover:shadow-sm transition"
+                                                    className="bg-white rounded-[20px] border border-[#E4DFD3] p-5 flex items-center gap-4 hover:border-[#16332B]/25 hover:shadow-[0_15px_35px_-22px_rgba(22,51,43,0.25)] transition-all"
                                                 >
-                                                    <div className="w-16 h-16 rounded-xl bg-[#F8F6F0] border border-[#E7E2D6] flex items-center justify-center text-2xl shrink-0 overflow-hidden">
+                                                    <div className="w-14 h-14 rounded-xl bg-[#FAF8F3] border border-[#E4DFD3] flex items-center justify-center shrink-0 overflow-hidden">
                                                         {amb.image ? (
                                                             <img
                                                                 src={amb.image}
@@ -205,22 +215,29 @@ export default function Ambulance() {
                                                                 className="w-full h-full object-cover"
                                                             />
                                                         ) : (
-                                                            "🚑"
+                                                            <Truck size={22} className="text-[#16332B]/35" strokeWidth={1.5} />
                                                         )}
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="font-medium text-[#16332B] text-sm truncate">
+                                                        <p className="font-semibold text-[#16332B] text-[15px] truncate">
                                                             {amb.driverName || "Driver"}
                                                         </p>
-                                                        <p className="text-xs text-[#8B8478] mt-1">
-                                                            {amb.distance ?? "1.2"} km away
-                                                            {amb.vehicleNumber ? ` · ${amb.vehicleNumber}` : ""}
+                                                        <p className="text-[13px] text-[#16332B]/50 mt-1">
+                                                            {amb.vehicleNumber}
                                                         </p>
-                                                        <div className="flex items-center gap-1.5 mt-1.5">
-                                                            <span className="w-1.5 h-1.5 bg-[#3F8A5C] rounded-full" />
-                                                            <span className="text-xs text-[#3F8A5C] font-medium">
-                                                                Available now
+                                                        <div className="flex items-center gap-1.5 mt-2">
+                                                            <span
+                                                                className={`w-1.5 h-1.5 rounded-full ${
+                                                                    amb.isAvailable === false ? "bg-[#A8A192]" : "bg-[#3E7C59]"
+                                                                }`}
+                                                            />
+                                                            <span
+                                                                className={`text-[12px] font-medium ${
+                                                                    amb.isAvailable === false ? "text-[#16332B]/40" : "text-[#3E7C59]"
+                                                                }`}
+                                                            >
+                                                                {amb.isAvailable === false ? "Currently dispatched" : "Available now"}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -228,13 +245,19 @@ export default function Ambulance() {
                                                     <button
                                                         disabled={amb.isAvailable === false}
                                                         onClick={() => goToBooking(amb)}
-                                                        className={`shrink-0 px-5 py-2.5 rounded-full text-sm font-semibold transition ${
+                                                        className={`shrink-0 flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] font-semibold transition ${
                                                             amb.isAvailable === false
-                                                                ? "bg-[#E7E2D6] text-[#A8A192] cursor-not-allowed"
-                                                                : "bg-[#C9683F] hover:bg-[#B85A33] text-white"
+                                                                ? "bg-[#EFEAE0] text-[#A8A192] cursor-not-allowed"
+                                                                : "bg-[#16332B] text-white hover:bg-[#0F231D]"
                                                         }`}
                                                     >
-                                                        {amb.isAvailable === false ? "Already booked" : "Book"}
+                                                        {amb.isAvailable === false ? (
+                                                            "Unavailable"
+                                                        ) : (
+                                                            <>
+                                                                Book <ArrowRight size={14} />
+                                                            </>
+                                                        )}
                                                     </button>
                                                 </div>
                                             ))}
@@ -245,19 +268,22 @@ export default function Ambulance() {
                         </div>
                     )}
 
-                    {/* Empty state */}
+                    {/* ───────────────────── EMPTY STATE ───────────────────── */}
                     {!loading && !hasResults && !error && (
-                        <div className="bg-white rounded-2xl border border-[#E7E2D6] py-16 px-6 text-center">
-                            <div className="w-16 h-16 mx-auto rounded-full bg-[#F8F6F0] flex items-center justify-center text-3xl">
-                                🚑
+                        <div className="bg-white rounded-[24px] border border-[#E4DFD3] py-20 px-6 text-center">
+                            <div className="w-14 h-14 mx-auto rounded-full bg-[#FAF8F3] flex items-center justify-center">
+                                <Truck size={22} className="text-[#16332B]/35" strokeWidth={1.5} />
                             </div>
-                            <h2 className="text-[#16332B] font-semibold mt-5">
+                            <h2
+                                style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                                className="text-[1.3rem] mt-6"
+                            >
                                 {search ? "No matches found" : "No ambulances nearby"}
                             </h2>
-                            <p className="text-[#8B8478] text-sm mt-2 max-w-xs mx-auto">
+                            <p className="text-[#16332B]/55 text-[14px] mt-2 max-w-xs mx-auto">
                                 {search
                                     ? "Try a different name or vehicle number."
-                                    : "Try a different zone, or call 108 for an immediate dispatch."}
+                                    : "Call 108 for an immediate dispatch while we connect you to a driver."}
                             </p>
                         </div>
                     )}

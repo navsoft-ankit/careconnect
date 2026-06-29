@@ -1,61 +1,58 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Star, MapPin, Stethoscope, X, ChevronDown } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Search, SlidersHorizontal, Star, MapPin, Stethoscope, X, ChevronDown, ArrowRight } from "lucide-react";
 import api from "../../api/axios";
 
 const FILTERS = [
     "All", "Cardiology", "Neurology", "Orthopedic",
-    "Dermatology", "Pediatrics", "General Medicine", "Dental",
+    "Dermatology", "Pediatrics", "General Physician", "Dentist",
 ];
 
 const SORT_OPTIONS = [
     { value: "default", label: "Recommended" },
-    { value: "fee_asc", label: "Lowest Fee" },
-    { value: "fee_desc", label: "Highest Fee" },
-    { value: "rating", label: "Top Rated" },
-    { value: "experience", label: "Most Experienced" },
+    { value: "fee_asc", label: "Lowest fee" },
+    { value: "fee_desc", label: "Highest fee" },
+    { value: "rating", label: "Top rated" },
+    { value: "experience", label: "Most experienced" },
 ];
 
 // Normalizes specialization strings so "Cardiology", "Cardiologist",
 // "cardiology ", etc. are all treated as the same thing.
-// Strips common suffixes (-ist, -ology -> ology) and lowercases + trims.
 function normalizeSpecialization(value) {
     if (!value) return "";
     let s = value.trim().toLowerCase();
-    // "cardiologist" -> "cardiology", "neurologist" -> "neurology"
     s = s.replace(/ologist$/, "ology");
-    // "dermatologist" -> "dermatology" already covered above
-    // "dentist" stays "dentist", "pediatrician" -> normalize common variant
     s = s.replace(/pediatrician/, "pediatrics");
     s = s.replace(/paediatrician/, "pediatrics");
     s = s.replace(/paediatrics/, "pediatrics");
     return s;
 }
 
-/* ───── skeleton ───── */
+// Some doctor names already include "Dr." — avoids "Dr. Dr. Ananya Sen".
+function displayDoctorName(name) {
+    if (!name) return "";
+    return /^dr\.?\s/i.test(name) ? name : `Dr. ${name}`;
+}
+
 function CardSkeleton() {
     return (
-        <div className="bg-white rounded-3xl overflow-hidden animate-pulse shadow-sm">
-            <div className="h-64 bg-gray-100" />
+        <div className="bg-white rounded-[24px] overflow-hidden animate-pulse border border-[#E4DFD3]">
+            <div className="h-60 bg-[#EFEAE0]" />
             <div className="p-5 space-y-3">
-                <div className="h-4 bg-gray-100 rounded-full w-2/3" />
-                <div className="h-3 bg-gray-100 rounded-full w-1/2" />
-                <div className="h-3 bg-gray-100 rounded-full w-1/3" />
-                <div className="flex gap-2 pt-1">
-                    <div className="h-6 bg-gray-100 rounded-full w-16" />
-                    <div className="h-6 bg-gray-100 rounded-full w-20" />
-                </div>
-                <div className="h-11 bg-gray-100 rounded-full mt-2" />
+                <div className="h-4 bg-[#EFEAE0] rounded-full w-2/3" />
+                <div className="h-3 bg-[#EFEAE0] rounded-full w-1/2" />
+                <div className="h-10 bg-[#EFEAE0] rounded-full mt-3" />
             </div>
         </div>
     );
 }
 
-/* ───── main ───── */
 export default function Doctors() {
+    const [searchParams] = useSearchParams();
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState("All");
+    const [search, setSearch] = useState(searchParams.get("search") || "");
+    const [activeFilter, setActiveFilter] = useState(searchParams.get("specialization") || "All");
     const [sortBy, setSortBy] = useState("default");
     const [showSort, setShowSort] = useState(false);
 
@@ -96,7 +93,7 @@ export default function Doctors() {
         return list;
     }, [doctors, search, activeFilter, sortBy]);
 
-    const availDot = (doc) => doc.availableToday ? "bg-emerald-400" : "bg-gray-300";
+    const availDot = (doc) => doc.availableToday ? "bg-[#3E7C59]" : "bg-[#16332B]/20";
     const availLabel = (doc) => {
         if (doc.availableToday) return "Available";
         if (doc.nextAvailable) {
@@ -109,62 +106,66 @@ export default function Doctors() {
     const sortLabel = SORT_OPTIONS.find(o => o.value === sortBy)?.label ?? "Recommended";
 
     return (
-        <div className="min-h-screen bg-[#F2F0EB]">
-            <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-10">
+        <div className="min-h-screen bg-[#FAF8F3] text-[#16332B]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+            <div className="max-w-[1200px] mx-auto px-6 lg:px-10 py-16">
 
-                {/* ── PAGE HEADER ── */}
-                <div className="mb-8">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#16332B] mb-2">
-                        Healthcare Professionals
+                {/* ───────────────────── HEADER ───────────────────── */}
+                <div className="mb-10">
+                    <p className="text-[13px] uppercase tracking-[0.22em] text-[#3E7C59] font-semibold mb-5">
+                        Healthcare professionals
                     </p>
-                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
-                        <div>
-                            <h1 className="text-[2.6rem] font-bold text-gray-900 leading-[1.15]">
-                                Find Your Doctor
-                            </h1>
-                            <p className="text-gray-500 mt-2.5 text-[0.93rem] max-w-lg leading-relaxed">
-                                Search by name, specialty, or location — we'll help you find the right care
-                            </p>
-                        </div>
+                    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+                        <h1
+                            style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                            className="leading-[1.05] tracking-tight"
+                        >
+                            <span style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)" }}>
+                                Find a doctor
+                            </span>
+                            <br />
+                            <span
+                                className="italic text-[#B5562C]"
+                                style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)" }}
+                            >
+                                worth trusting.
+                            </span>
+                        </h1>
 
-                        {/* Search + Filter row */}
                         <div className="flex items-center gap-3">
-                            {/* Search */}
                             <div className="relative">
-                                <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#16332B]/35" />
                                 <input
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     placeholder="Try 'cardiologist' or 'Dr. Smith'..."
-                                    className="h-12 w-72 pl-11 pr-10 rounded-full border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#16332B]/25 text-sm shadow-sm placeholder:text-gray-400"
+                                    className="h-12 w-72 pl-11 pr-10 rounded-full border border-[#E4DFD3] bg-white focus:outline-none focus:ring-2 focus:ring-[#16332B]/20 text-sm placeholder:text-[#16332B]/35"
                                 />
                                 {search && (
                                     <button
                                         onClick={() => setSearch("")}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#16332B]/35 hover:text-[#16332B]/60"
                                     >
                                         <X size={13} />
                                     </button>
                                 )}
                             </div>
 
-                            {/* Sort dropdown */}
                             <div className="relative">
                                 <button
                                     onClick={() => setShowSort(!showSort)}
-                                    className="h-12 px-5 rounded-full border border-gray-300 bg-white hover:bg-gray-50 flex items-center gap-2 text-sm font-medium shadow-sm"
+                                    className="h-12 px-5 rounded-full border border-[#E4DFD3] bg-white hover:border-[#16332B]/25 flex items-center gap-2 text-sm font-medium"
                                 >
                                     <SlidersHorizontal size={14} />
                                     {sortLabel}
                                     <ChevronDown size={13} className={`transition-transform ${showSort ? "rotate-180" : ""}`} />
                                 </button>
                                 {showSort && (
-                                    <div className="absolute right-0 top-14 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 py-2 min-w-[180px]">
+                                    <div className="absolute right-0 top-14 bg-white border border-[#E4DFD3] rounded-2xl shadow-xl z-20 py-2 min-w-[180px]">
                                         {SORT_OPTIONS.map((opt) => (
                                             <button
                                                 key={opt.value}
                                                 onClick={() => { setSortBy(opt.value); setShowSort(false); }}
-                                                className={`w-full text-left px-5 py-2.5 text-sm hover:bg-gray-50 transition ${sortBy === opt.value ? "font-semibold text-[#16332B]" : "text-gray-700"
+                                                className={`w-full text-left px-5 py-2.5 text-sm hover:bg-[#FAF8F3] transition ${sortBy === opt.value ? "font-semibold text-[#16332B]" : "text-[#16332B]/70"
                                                     }`}
                                             >
                                                 {sortBy === opt.value && "✓ "}{opt.label}
@@ -177,15 +178,15 @@ export default function Doctors() {
                     </div>
                 </div>
 
-                {/* ── FILTER CHIPS ── */}
+                {/* ───────────────────── FILTER CHIPS ───────────────────── */}
                 <div className="flex flex-wrap gap-2.5 mb-7">
                     {FILTERS.map((item) => (
                         <button
                             key={item}
                             onClick={() => setActiveFilter(item)}
                             className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${activeFilter === item
-                                ? "bg-[#16332B] text-white shadow-md shadow-[#16332B]/20"
-                                : "bg-white border border-gray-200 text-gray-700 hover:border-gray-300 hover:shadow-sm"
+                                ? "bg-[#16332B] text-white"
+                                : "bg-white border border-[#E4DFD3] text-[#16332B]/65 hover:border-[#16332B]/30"
                                 }`}
                         >
                             {item}
@@ -193,33 +194,31 @@ export default function Doctors() {
                     ))}
                 </div>
 
-                {/* Result count */}
                 {!loading && (
-                    <p className="text-sm text-gray-500 mb-6">
-                        Showing <span className="font-semibold text-gray-800">{filteredDoctors.length}</span> doctor{filteredDoctors.length !== 1 ? "s" : ""}
+                    <p className="text-sm text-[#16332B]/50 mb-6">
+                        Showing <span className="font-semibold text-[#16332B]">{filteredDoctors.length}</span> doctor{filteredDoctors.length !== 1 ? "s" : ""}
                         {activeFilter !== "All" && (
-                            <> in <span className="font-semibold text-gray-800">{activeFilter}</span></>
+                            <> in <span className="font-semibold text-[#16332B]">{activeFilter}</span></>
                         )}
                     </p>
                 )}
 
-                {/* ── LOADING SKELETON ── */}
+                {/* ───────────────────── LOADING ───────────────────── */}
                 {loading && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)}
                     </div>
                 )}
 
-                {/* ── DOCTOR CARDS GRID ── */}
+                {/* ───────────────────── DOCTOR CARDS ───────────────────── */}
                 {!loading && filteredDoctors.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredDoctors.map((doc) => (
                             <div
                                 key={doc.id}
-                                className="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                                className="group bg-white rounded-[24px] overflow-hidden border border-[#E4DFD3] hover:border-[#16332B]/25 hover:shadow-[0_25px_50px_-25px_rgba(22,51,43,0.25)] transition-all duration-300 flex flex-col"
                             >
-                                {/* ── IMAGE ZONE ── */}
-                                <div className="relative h-64 bg-gradient-to-b from-[#E8E5DF] to-[#D8D4CC] flex items-end justify-center overflow-hidden">
+                                <div className="relative h-60 bg-gradient-to-b from-[#EFEAE0] to-[#E4DFD3] flex items-center justify-center overflow-hidden">
                                     {doc.profileImage ? (
                                         <img
                                             src={doc.profileImage}
@@ -227,79 +226,75 @@ export default function Doctors() {
                                             className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
                                         />
                                     ) : (
-                                        /* No-image fallback: big initials circle sitting at bottom of zone */
-                                        <div className="mb-0 w-full h-full flex items-center justify-center">
-                                            <div className="w-28 h-28 rounded-full bg-[#16332B] text-white flex items-center justify-center text-5xl font-bold shadow-lg">
-                                                {doc.name?.charAt(0)?.toUpperCase() ?? "?"}
-                                            </div>
+                                        <div
+                                            className="w-24 h-24 rounded-full bg-[#16332B] text-white flex items-center justify-center font-medium shadow-lg"
+                                            style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: "2.5rem" }}
+                                        >
+                                            {doc.name?.charAt(0)?.toUpperCase() ?? "?"}
                                         </div>
                                     )}
 
-                                    {/* Distance pill — top right */}
                                     {doc.distance != null && (
-                                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-600 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-[#16332B]/70 text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
                                             <MapPin size={10} />
                                             {doc.distance} km
                                         </div>
                                     )}
                                 </div>
 
-                                {/* ── CARD BODY ── */}
                                 <div className="p-5 flex flex-col flex-1">
-
-                                    {/* Name + availability */}
                                     <div className="flex items-start justify-between gap-2">
-                                        <h2 className="font-bold text-gray-900 text-[1.05rem] leading-snug">
-                                            {doc.name}
+                                        <h2
+                                            style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                                            className="text-[1.15rem] leading-snug"
+                                        >
+                                            {displayDoctorName(doc.name)}
                                         </h2>
-                                        <span className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                                        <span className="flex items-center gap-1.5 shrink-0 mt-1">
                                             <span className={`w-2 h-2 rounded-full ${availDot(doc)}`} />
-                                            <span className="text-xs text-gray-500 font-medium">{availLabel(doc)}</span>
+                                            <span className="text-xs text-[#16332B]/50 font-medium">{availLabel(doc)}</span>
                                         </span>
                                     </div>
 
-                                    {/* Specialization */}
-                                    <p className="text-sm text-gray-500 mt-1">{doc.specialization}</p>
+                                    <p className="text-sm text-[#16332B]/55 mt-1">{doc.specialization}</p>
 
-                                    {/* Hospital */}
                                     {doc.hospitalName && (
-                                        <p className="text-xs text-gray-400 mt-0.5 truncate">{doc.hospitalName}</p>
+                                        <p className="text-xs text-[#16332B]/40 mt-0.5 truncate">{doc.hospitalName}</p>
                                     )}
 
-                                    {/* Stats: experience + rating */}
-                                    <div className="flex items-center gap-4 mt-3.5 text-xs text-gray-500">
+                                    <div className="flex items-center gap-4 mt-3.5 text-xs text-[#16332B]/55">
                                         <span className="flex items-center gap-1">
-                                            <Stethoscope size={12} className="text-gray-400" />
-                                            <span>{doc.experience ?? "10+"}y exp</span>
+                                            <Stethoscope size={12} className="text-[#16332B]/35" />
+                                            {doc.experience ?? "10+"}y exp
                                         </span>
                                         <span className="flex items-center gap-1">
-                                            <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                                            <span className="font-semibold text-gray-700">{doc.rating ?? "4.9"}</span>
+                                            <Star size={12} className="fill-[#B5562C] text-[#B5562C]" />
+                                            <span className="font-semibold text-[#16332B]/75">{doc.rating ?? "4.9"}</span>
                                         </span>
                                     </div>
 
-                                    {/* Mode chips */}
                                     <div className="flex gap-2 mt-3">
                                         {doc.onlineAvailable !== false && (
-                                            <span className="text-[11px] font-medium px-3 py-1 rounded-full border border-gray-200 text-gray-600">
+                                            <span className="text-[11px] font-medium px-3 py-1 rounded-full border border-[#E4DFD3] text-[#16332B]/55">
                                                 Online
                                             </span>
                                         )}
                                         {doc.inPersonAvailable !== false && (
-                                            <span className="text-[11px] font-medium px-3 py-1 rounded-full border border-gray-200 text-gray-600">
-                                                In-Person
+                                            <span className="text-[11px] font-medium px-3 py-1 rounded-full border border-[#E4DFD3] text-[#16332B]/55">
+                                                In-person
                                             </span>
                                         )}
                                     </div>
 
-                                    {/* Spacer */}
                                     <div className="flex-1" />
 
-                                    {/* Fee + Book button */}
                                     <div className="flex items-center justify-between mt-5">
                                         <div>
-                                            <p className="text-[11px] text-gray-400 font-medium">Starting at</p>
-                                            <p className="text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                                            <p className="text-[11px] text-[#16332B]/40 font-medium">Starting at</p>
+                                            <p
+                                                style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                                                className="text-[1.5rem] leading-none mt-0.5"
+                                            >
                                                 ₹{doc.fee}
                                             </p>
                                         </div>
@@ -307,9 +302,9 @@ export default function Doctors() {
                                             onClick={() =>
                                                 (window.location.href = `/patient/bookdoctor?doctorId=${doc.id}`)
                                             }
-                                            className="flex items-center gap-2 bg-[#3B82F6] hover:bg-[#2563EB] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full shadow-md shadow-blue-500/20 transition-all duration-150"
+                                            className="flex items-center gap-1.5 bg-[#16332B] hover:bg-[#0F231D] active:scale-95 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all"
                                         >
-                                            Book Now
+                                            Book <ArrowRight size={14} />
                                         </button>
                                     </div>
                                 </div>
@@ -318,40 +313,48 @@ export default function Doctors() {
                     </div>
                 )}
 
-                {/* ── EMPTY STATE ── */}
+                {/* ───────────────────── EMPTY STATE ───────────────────── */}
                 {!loading && filteredDoctors.length === 0 && (
-                    <div className="mt-8 bg-white rounded-3xl border border-gray-100 py-24 text-center shadow-sm">
-                        <div className="w-16 h-16 mx-auto rounded-2xl bg-gray-100 flex items-center justify-center mb-5">
-                            <Stethoscope className="w-8 h-8 text-gray-400" />
+                    <div className="mt-8 bg-white rounded-[24px] border border-[#E4DFD3] py-24 text-center">
+                        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#FAF8F3] flex items-center justify-center mb-5">
+                            <Stethoscope className="w-8 h-8 text-[#16332B]/35" />
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900">No Doctors Found</h2>
-                        <p className="mt-2 text-gray-500 text-sm">Try adjusting your search or filter criteria.</p>
+                        <h2
+                            style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                            className="text-[1.4rem]"
+                        >
+                            No doctors found
+                        </h2>
+                        <p className="mt-2 text-[#16332B]/55 text-sm">Try adjusting your search or filter criteria.</p>
                         <button
                             onClick={() => { setSearch(""); setActiveFilter("All"); setSortBy("default"); }}
-                            className="mt-7 bg-[#16332B] text-white px-7 py-3 rounded-full text-sm font-semibold hover:bg-[#0F231D] transition shadow-md"
+                            className="mt-7 bg-[#16332B] text-white px-7 py-3 rounded-full text-sm font-semibold hover:bg-[#0F231D] transition"
                         >
-                            Reset Filters
+                            Reset filters
                         </button>
                     </div>
                 )}
 
-                {/* ── BOTTOM CTA BANNER ── */}
-                <div className="mt-20 rounded-[2rem] bg-[#16332B] text-white overflow-hidden">
+                {/* ───────────────────── BOTTOM CTA ───────────────────── */}
+                <div className="mt-20 rounded-[28px] bg-[#16332B] text-[#FAF8F3] overflow-hidden">
                     <div className="px-10 lg:px-16 py-14 flex flex-col lg:flex-row justify-between items-center gap-8">
                         <div>
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-semibold mb-3">
-                                Need Help?
+                            <p className="text-[13px] uppercase tracking-[0.2em] text-[#FAF8F3]/45 font-semibold mb-4">
+                                Need help?
                             </p>
-                            <h2 className="text-[2rem] font-bold leading-tight">
+                            <h2
+                                style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 500 }}
+                                className="text-[1.85rem] leading-tight"
+                            >
                                 Can't find the<br />right doctor?
                             </h2>
-                            <p className="mt-4 text-gray-300 max-w-md text-sm leading-relaxed">
+                            <p className="mt-4 text-[#FAF8F3]/65 max-w-md text-sm leading-relaxed">
                                 Our support team will help you choose the best specialist
                                 based on your symptoms and preferred location.
                             </p>
                         </div>
-                        <button className="shrink-0 bg-white text-[#16332B] px-8 py-4 rounded-2xl font-semibold text-sm hover:scale-105 active:scale-100 transition shadow-xl">
-                            Contact Support →
+                        <button className="shrink-0 bg-[#FAF8F3] text-[#16332B] px-8 py-4 rounded-full font-semibold text-sm hover:bg-white transition">
+                            Contact support →
                         </button>
                     </div>
                 </div>

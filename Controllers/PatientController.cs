@@ -223,6 +223,77 @@ public class PatientController : ControllerBase
     })
     .ToList());
     }
+    // Fixed city list with keyword matching against HospitalName, since
+    // no entity currently stores an explicit City field. Add more cities
+    // and keywords here as the platform expands.
+    private static readonly Dictionary<string, string[]> CityKeywords = new()
+    {
+        ["Kolkata"] = new[] { "kolkata", "calcutta", "park street", "ballygunge", "alipore" },
+        ["Howrah"] = new[] { "howrah", "shibpur", "santragachi" },
+        ["Salt Lake"] = new[] { "salt lake", "sector v", "bidhannagar" },
+        ["New Town"] = new[] { "new town", "rajarhat" },
+    };
+
+    // Rough bounding boxes for the same cities, used to bucket ambulances
+    // by their stored lat/lng since they don't have a HospitalName to match against.
+    private static readonly Dictionary<string, (double MinLat, double MaxLat, double MinLng, double MaxLng)> CityBounds = new()
+    {
+        ["Kolkata"] = (22.45, 22.62, 88.30, 88.42),
+        ["Howrah"] = (22.55, 22.62, 88.25, 88.34),
+        ["Salt Lake"] = (22.56, 22.61, 88.40, 88.45),
+        ["New Town"] = (22.57, 22.65, 88.45, 88.52),
+    };
+
+    private static string MatchCityFromHospitalName(string hospitalName)
+    {
+        if (string.IsNullOrWhiteSpace(hospitalName))
+            return "Other";
+
+        var lower = hospitalName.ToLowerInvariant();
+
+        foreach (var (city, keywords) in CityKeywords)
+        {
+            if (keywords.Any(k => lower.Contains(k)))
+                return city;
+        }
+
+        return "Other";
+    }
+
+    private static string MatchCityFromCoordinates(double lat, double lng)
+    {
+        foreach (var (city, bounds) in CityBounds)
+        {
+            if (lat >= bounds.MinLat && lat <= bounds.MaxLat &&
+                lng >= bounds.MinLng && lng <= bounds.MaxLng)
+                return city;
+        }
+
+        return "Other";
+    }
+
+    [HttpGet("coverage")]
+    public IActionResult GetServiceCoverage()
+    {
+        var doctors = _context.Doctors.ToList();
+        var ambulances = _context.Ambulances.Where(a => a.IsAvailable).ToList();
+        var productCount = _context.Products.Count();
+
+        var cityNames = CityKeywords.Keys.ToList();
+
+        var coverage = cityNames.Select(city => new
+        {
+            City = city,
+            DoctorCount = doctors.Count(d => MatchCityFromHospitalName(d.HospitalName) == city),
+            AvailableAmbulances = ambulances.Count(a => MatchCityFromCoordinates(a.Latitude, a.Longitude) == city),
+            // Medicine delivery is platform-wide for now — every covered city
+            // gets pharmacy access as long as we have any products listed.
+            MedicineDeliveryAvailable = productCount > 0,
+        })
+        .ToList();
+
+        return Ok(coverage);
+    }
     [HttpPost("ambulance-request")]
     public IActionResult RequestAmbulance(CreateAmbulanceRequestDto dto)
     {
