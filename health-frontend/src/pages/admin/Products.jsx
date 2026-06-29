@@ -14,6 +14,11 @@ export default function Products() {
     stock: ""
   });
 
+  // --- Add Stock modal state ---
+  const [stockModalProduct, setStockModalProduct] = useState(null); // product being edited, or null
+  const [stockInput, setStockInput] = useState("");
+  const [updatingStock, setUpdatingStock] = useState(false);
+
   useEffect(() => {
     load();
   }, []);
@@ -49,6 +54,45 @@ export default function Products() {
   const remove = async (id) => {
     await api.delete(`/admin/product/${id}`);
     setProducts(products.filter(p => p.id !== id));
+  };
+
+  // --- Add Stock modal handlers ---
+  const openStockModal = (product) => {
+    setStockModalProduct(product);
+    setStockInput(""); // amount to add, starts empty
+  };
+
+  const closeStockModal = () => {
+    setStockModalProduct(null);
+    setStockInput("");
+  };
+
+  const submitStockUpdate = async () => {
+    const addAmount = parseInt(stockInput, 10);
+
+    if (isNaN(addAmount) || addAmount <= 0) {
+      alert("Enter a valid quantity to add");
+      return;
+    }
+
+    const newStock = stockModalProduct.stock + addAmount;
+
+    setUpdatingStock(true);
+    try {
+      await api.put(`/admin/product/${stockModalProduct.id}/stock`, {
+        stock: newStock
+      });
+
+      setProducts(products.map(p =>
+        p.id === stockModalProduct.id ? { ...p, stock: newStock } : p
+      ));
+
+      closeStockModal();
+    } catch (err) {
+      alert(err.response?.data || "Error updating stock");
+    } finally {
+      setUpdatingStock(false);
+    }
   };
 
   return (
@@ -137,12 +181,20 @@ export default function Products() {
                   <td>₹{p.price}</td>
                   <td>{p.stock}</td>
                   <td>
-                    <button
-                      onClick={() => remove(p.id)}
-                      className="bg-red-500 text-white px-3 py-1 rounded"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2 justify-center py-1">
+                      <button
+                        onClick={() => openStockModal(p)}
+                        className="bg-emerald-600 text-white px-3 py-1 rounded"
+                      >
+                        Add Stock
+                      </button>
+                      <button
+                        onClick={() => remove(p.id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -151,6 +203,54 @@ export default function Products() {
 
         </div>
       </div>
+
+      {/* ADD STOCK MODAL */}
+      {stockModalProduct && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold mb-1">Add Stock</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              {stockModalProduct.name} — current stock: {stockModalProduct.stock}
+            </p>
+
+            <label className="text-sm text-gray-600 mb-1 block">
+              Quantity to add
+            </label>
+            <input
+              type="number"
+              min="1"
+              autoFocus
+              value={stockInput}
+              onChange={(e) => setStockInput(e.target.value)}
+              placeholder="e.g. 50"
+              className="border border-gray-300 rounded w-full px-3 py-2 mb-1"
+            />
+
+            {stockInput && !isNaN(parseInt(stockInput, 10)) && (
+              <p className="text-xs text-gray-500 mb-4">
+                New total: {stockModalProduct.stock + parseInt(stockInput, 10)}
+              </p>
+            )}
+
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={closeStockModal}
+                disabled={updatingStock}
+                className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitStockUpdate}
+                disabled={updatingStock}
+                className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded disabled:opacity-50"
+              >
+                {updatingStock ? "Updating..." : "Update Stock"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

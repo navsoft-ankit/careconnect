@@ -116,7 +116,7 @@ public class PatientController : ControllerBase
     {
         return Ok(_context.Products.ToList());
     }
-   [HttpPost("order")]
+    [HttpPost("order")]
     public IActionResult PlaceOrder(PlaceOrderDto dto)
     {
         var userId = int.Parse(
@@ -319,5 +319,34 @@ public class PatientController : ControllerBase
         _context.SaveChanges();
 
         return Ok("Appointment cancelled by user");
+    }
+    [HttpGet("ambulance-request/{id}")]
+    public IActionResult GetAmbulanceRequestStatus(int id)
+    {
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var request = _context.AmbulanceRequests
+            .FirstOrDefault(x => x.Id == id && x.UserId == userId);
+
+        if (request == null)
+            return NotFound("Request not found");
+
+        var ambulance = _context.Ambulances
+            .FirstOrDefault(x => x.Id == request.AmbulanceId);
+
+        return Ok(new
+        {
+            request.Id,
+            request.Status,
+            request.PickupLocation,
+            request.DestinationLocation,
+            request.Fare,
+            request.DistanceKm,
+            request.VehicleType,
+            request.RequestTime,
+            DriverName = ambulance != null ? ambulance.DriverName : null,
+            VehicleNumber = ambulance != null ? ambulance.VehicleNumber : null
+        });
     }
 }

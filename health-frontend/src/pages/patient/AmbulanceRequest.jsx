@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../api/axios";
 import {
@@ -7,6 +7,8 @@ import {
     FiCheckCircle,
     FiArrowLeft,
     FiAlertTriangle,
+    FiXCircle,
+    FiLoader,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -119,6 +121,11 @@ export default function AmbulanceRequest() {
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
 
+    // --- Waiting-for-driver state (step 4) ---
+    const [rideStatus, setRideStatus] = useState("Pending"); // Pending | Accepted | Rejected | Cancelled
+    const [rideInfo, setRideInfo] = useState(null);
+    const pollRef = useRef(null);
+
     const destination = useMemo(() => {
         if (destinationKey === "other") {
             return {
@@ -170,6 +177,31 @@ export default function AmbulanceRequest() {
         detectPickup();
     }, []);
 
+    // Poll ride status once we're on step 4 ("waiting for driver" / done)
+    useEffect(() => {
+        if (step !== 4 || !result?.requestId) return;
+
+        const checkStatus = async () => {
+            try {
+                const res = await api.get(`/patient/ambulance-request/${result.requestId}`);
+                setRideInfo(res.data);
+                setRideStatus(res.data.status);
+
+                // stop polling once the driver has responded either way
+                if (res.data.status !== "Pending") {
+                    clearInterval(pollRef.current);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        checkStatus(); // run immediately
+        pollRef.current = setInterval(checkStatus, 5000);
+
+        return () => clearInterval(pollRef.current);
+    }, [step, result]);
+
     function canContinueDestination() {
         if (destinationKey !== "other") return true;
         return (
@@ -199,8 +231,9 @@ export default function AmbulanceRequest() {
             });
 
             setResult(res.data);
+            setRideStatus("Pending");
             setStep(4);
-            toast.success("Ambulance request sent.");
+            toast.success("Request sent — waiting for driver to accept.");
         } catch (err) {
             setError(err?.response?.data || "Couldn't send the request. Please try again.");
             toast.error("Request failed.");
@@ -450,28 +483,97 @@ export default function AmbulanceRequest() {
                             </div>
                         )}
 
-                        {/* Step 4: Done */}
+                        {/* Step 4: Waiting / Accepted / Rejected */}
                         {step === 4 && result && (
                             <div className="text-center py-4">
-                                <div className="w-16 h-16 mx-auto rounded-full bg-[#E9F2EC] flex items-center justify-center">
-                                    <FiCheckCircle className="text-[#2F6B47]" size={30} />
-                                </div>
-                                <h2 className="text-lg font-semibold text-[#16332B] mt-5">
-                                    Ambulance dispatched
-                                </h2>
-                                <p className="text-[#6B6458] text-sm mt-2">
-                                    Request #{result.requestId}
-                                </p>
-                                <p className="text-[#8B8478] text-sm mt-1">
-                                    {result.distanceKm} km · estimated fare ₹{result.fare}
-                                </p>
+                                {rideStatus === "Pending" && (
+                                    <>
+                                        <div className="w-16 h-16 mx-auto rounded-full bg-[#FFF4E0] flex items-center justify-center">
+                                            <FiLoader className="text-[#B3791E] animate-spin" size={28} />
+                                        </div>
+                                        <h2 className="text-lg font-semibold text-[#16332B] mt-5">
+                                            Waiting for driver to accept
+                                        </h2>
+                                        <p className="text-[#6B6458] text-sm mt-2">
+                                            Request #{result.requestId}
+                                        </p>
+                                        <p className="text-[#8B8478] text-sm mt-1">
+                                            {result.distanceKm} km · estimated fare ₹{result.fare}
+                                        </p>
+                                        <p className="text-[#A8A192] text-xs mt-4">
+                                            This page checks for updates automatically — no need to refresh.
+                                        </p>
+                                    </>
+                                )}
 
-                                <button
-                                    onClick={() => navigate("/patient/ambulance")}
-                                    className="w-full mt-7 bg-[#16332B] hover:bg-[#0F241D] text-white py-3 rounded-xl font-medium transition"
-                                >
-                                    Back to ambulances
-                                </button>
+                                {rideStatus === "Accepted" && (
+                                    <>
+                                        <div className="w-16 h-16 mx-auto rounded-full bg-[#E9F2EC] flex items-center justify-center">
+                                            <FiCheckCircle className="text-[#2F6B47]" size={30} />
+                                        </div>
+                                        <h2 className="text-lg font-semibold text-[#16332B] mt-5">
+                                            Driver accepted your ride
+                                        </h2>
+                                        {rideInfo?.driverName && (
+                                            <p className="text-[#6B6458] text-sm mt-2">
+                                                {rideInfo.driverName}
+                                                {rideInfo.vehicleNumber ? ` · ${rideInfo.vehicleNumber}` : ""}
+                                            </p>
+                                        )}
+                                        <p className="text-[#8B8478] text-sm mt-1">
+                                            {result.distanceKm} km · estimated fare ₹{result.fare}
+                                        </p>
+
+                                        <button
+                                            onClick={() => navigate("/patient/ambulance")}
+                                            className="w-full mt-7 bg-[#16332B] hover:bg-[#0F241D] text-white py-3 rounded-xl font-medium transition"
+                                        >
+                                            Back to ambulances
+                                        </button>
+                                    </>
+                                )}
+
+                                {rideStatus === "Rejected" && (
+                                    <>
+                                        <div className="w-16 h-16 mx-auto rounded-full bg-[#FBEAE5] flex items-center justify-center">
+                                            <FiXCircle className="text-[#9E3A20]" size={28} />
+                                        </div>
+                                        <h2 className="text-lg font-semibold text-[#16332B] mt-5">
+                                            Driver couldn't accept this ride
+                                        </h2>
+                                        <p className="text-[#8B8478] text-sm mt-2 max-w-xs mx-auto">
+                                            Try a different ambulance, or call 108 if this is urgent.
+                                        </p>
+
+                                        <button
+                                            onClick={() => navigate("/patient/ambulance")}
+                                            className="w-full mt-7 bg-[#16332B] hover:bg-[#0F241D] text-white py-3 rounded-xl font-medium transition"
+                                        >
+                                            Choose another ambulance
+                                        </button>
+                                    </>
+                                )}
+
+                                {rideStatus === "Cancelled" && (
+                                    <>
+                                        <div className="w-16 h-16 mx-auto rounded-full bg-[#F1EDE3] flex items-center justify-center">
+                                            <FiXCircle className="text-[#6B6458]" size={28} />
+                                        </div>
+                                        <h2 className="text-lg font-semibold text-[#16332B] mt-5">
+                                            Ride was cancelled
+                                        </h2>
+                                        <p className="text-[#8B8478] text-sm mt-2 max-w-xs mx-auto">
+                                            You can book another ambulance any time.
+                                        </p>
+
+                                        <button
+                                            onClick={() => navigate("/patient/ambulance")}
+                                            className="w-full mt-7 bg-[#16332B] hover:bg-[#0F241D] text-white py-3 rounded-xl font-medium transition"
+                                        >
+                                            Back to ambulances
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

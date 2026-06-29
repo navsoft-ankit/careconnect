@@ -172,8 +172,8 @@ export default function DoctorDashboard() {
         <button
           onClick={() => setTab("appointments")}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === "appointments"
-              ? "text-forest border-terracotta"
-              : "text-gray-500 border-transparent hover:text-forest"
+            ? "text-forest border-terracotta"
+            : "text-gray-500 border-transparent hover:text-forest"
             }`}
         >
           Appointments
@@ -184,8 +184,8 @@ export default function DoctorDashboard() {
         <button
           onClick={() => setTab("availability")}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 transition-colors ${tab === "availability"
-              ? "text-forest border-terracotta"
-              : "text-gray-500 border-transparent hover:text-forest"
+            ? "text-forest border-terracotta"
+            : "text-gray-500 border-transparent hover:text-forest"
             }`}
         >
           My Availability
