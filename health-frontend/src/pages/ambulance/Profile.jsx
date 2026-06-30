@@ -255,7 +255,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: TOKENS.cream }}>
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-10">
+      <div className="w-full px-8 lg:px-12 py-8">
         {/* Page header */}
         <div className="mb-7">
           <h1 className="font-serif text-3xl font-bold" style={{ color: TOKENS.ink }}>
@@ -266,21 +266,19 @@ export default function Profile() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-[280px_1fr] gap-6 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-8 items-start">
           {/* ---------------- Left sidebar card ---------------- */}
           <div
-            className="rounded-3xl overflow-hidden shadow-sm"
+  className="rounded-3xl overflow-hidden shadow-lg h-full"
             style={{ backgroundColor: TOKENS.white, border: `1px solid ${TOKENS.border}` }}
           >
-            <div className="h-24 relative" style={{ backgroundColor: TOKENS.green }}>
-              <div
-                className="absolute inset-0 opacity-10 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(circle at 25% 30%, white 0, transparent 35%), radial-gradient(circle at 80% 70%, white 0, transparent 30%)",
-                }}
-              />
-            </div>
+<div
+  className="h-6"
+  style={{
+    backgroundColor: TOKENS.white,
+    borderBottom: `1px solid ${TOKENS.border}`,
+  }}
+></div>
 
             <div className="px-5 pb-5">
               <div
@@ -308,7 +306,7 @@ export default function Profile() {
                 {profile.verified && (
                   <span
                     className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full"
-                    style={{ backgroundColor: TOKENS.greenLight, color: TOKENS.green }}
+                    style={{ backgroundColor: TOKENS.creamDark, color: TOKENS.green }}
                   >
                     <BadgeCheck className="w-3 h-3" /> Verified
                   </span>
@@ -332,7 +330,7 @@ export default function Profile() {
 
               <div
                 className="mt-4 rounded-2xl px-4 py-3 flex items-center justify-between"
-                style={{ backgroundColor: TOKENS.greenLight }}
+                style={{ backgroundColor: TOKENS.creamDark }}
               >
                 <div>
                   <p
@@ -540,7 +538,7 @@ function Row({ icon, label, children, last = false }) {
     >
       <div
         className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: TOKENS.greenLight, color: TOKENS.green }}
+        style={{ backgroundColor: TOKENS.creamDark, color: TOKENS.green }}
       >
         {icon}
       </div>
@@ -592,7 +590,7 @@ function ProfileSkeleton() {
   const pulse = { backgroundColor: TOKENS.creamDark };
   return (
     <div className="min-h-screen pb-16" style={{ backgroundColor: TOKENS.cream }}>
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-10">
+      <div className="w-full px-8 lg:px-12 py-8">
         <div className="h-8 w-40 rounded animate-pulse mb-2" style={pulse} />
         <div className="h-4 w-56 rounded animate-pulse mb-7" style={pulse} />
         <div className="grid md:grid-cols-[280px_1fr] gap-6">
