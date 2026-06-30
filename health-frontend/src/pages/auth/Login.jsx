@@ -19,7 +19,7 @@ export default function Login() {
     try {
       const data = await loginUser({ email, password });
 
-      console.log("LOGIN RESPONSE:", data);
+      // console.log("LOGIN RESPONSE:", data);
 
       login(data);
 
@@ -38,9 +38,13 @@ export default function Login() {
       else if (role === "Doctor") navigate("/doctor");
       else if (role === "AmbulanceDriver") navigate("/ambulance");
       else navigate("/patient");
-    } catch (err) {
-      alert(err.response?.data?.message || "Login Failed");
-    } finally {
+    }catch (err) {
+  console.log(err);
+  console.log(err.response);
+  console.log(err.response?.data);
+
+  alert(JSON.stringify(err.response?.data));
+} finally {
       setLoading(false);
     }
   };

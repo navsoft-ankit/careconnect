@@ -2,1634 +2,577 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-
 import {
-  Activity,
-  BadgeCheck,
-  BarChart3,
-  Bell,
-  Calendar,
-  CalendarDays,
-  CheckCircle2,
-  ClipboardList,
-  Clock3,
-  HeartPulse,
-  Mail,
-  Menu,
-  Phone,
-  PieChart,
-  RefreshCw,
-  Search,
-  Stethoscope,
-  TimerReset,
-  TrendingDown,
-  TrendingUp,
-  UserCircle2,
-  Users,
-  X,
-  XCircle,
-  Eye,
-  Edit3,
-  ChevronRight,
+  Activity, BadgeCheck, Bell, Calendar, CalendarDays,
+  CheckCircle2, ClipboardList, Clock3, HeartPulse, Mail,
+  Menu, Phone, PieChart, RefreshCw, Search, Stethoscope,
+  TimerReset, TrendingDown, TrendingUp, UserCircle2, Users,
+  X, XCircle, Eye, Edit3,
 } from "lucide-react";
 
-/* ===========================
-   API
-=========================== */
-
-const API = axios.create({
-  baseURL: "http://localhost:5008/api",
-});
-
-API.interceptors.request.use((config) => {
+/* ─── API ─────────────────────────────────────────── */
+const API = axios.create({ baseURL: "http://localhost:5008/api" });
+API.interceptors.request.use((cfg) => {
   const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
+  if (token) cfg.headers.Authorization = `Bearer ${token}`;
+  return cfg;
 });
 
-/* ===========================
-   Constants
-=========================== */
-
-const STATUS_COLOR = {
-  Pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  Confirmed: "bg-green-100 text-green-700 border-green-200",
-  Completed: "bg-blue-100 text-blue-700 border-blue-200",
-  Cancelled: "bg-red-100 text-red-700 border-red-200",
+/* ─── Design tokens ───────────────────────────────── */
+const T = {
+  cream:     "#F5F0E8",
+  creamDark: "#EDE7D9",
+  green:     "#2D5016",
+  greenMid:  "#3D6B1F",
+  greenLight:"#EBF2E3",
+  terra:     "#C4622D",
+  terraLight:"#FAF0EA",
+  ink:       "#1A1A1A",
+  muted:     "#6B7280",
+  border:    "#E2DACE",
+  white:     "#FFFFFF",
 };
 
-const DAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
+/* ─── Status config ───────────────────────────────── */
+const STATUS = {
+  Pending:   { bg: "#FEF9C3", text: "#854D0E", border: "#FDE68A" },
+  Confirmed: { bg: T.greenLight, text: T.green, border: "#BBD9A0" },
+  Completed: { bg: "#DBEAFE", text: "#1E40AF", border: "#BFDBFE" },
+  Cancelled: { bg: "#FEE2E2", text: "#991B1B", border: "#FECACA" },
+};
 
-/* ===========================
-   Reusable Components
-=========================== */
-
-function Card({ children, className = "" }) {
+/* ─── Tiny helpers ────────────────────────────────── */
+function Skeleton() {
   return (
-    <div
-      className={`bg-white rounded-3xl border border-slate-200 shadow-sm ${className}`}
+    <div style={{ background: T.white, borderRadius: 20, padding: 24, border: `1px solid ${T.border}`, animation: "pulse 1.5s infinite" }}>
+      <div style={{ height: 14, background: T.creamDark, borderRadius: 8, width: "40%", marginBottom: 16 }} />
+      <div style={{ height: 40, background: T.creamDark, borderRadius: 8, width: "60%", marginBottom: 12 }} />
+      <div style={{ height: 10, background: T.creamDark, borderRadius: 8 }} />
+    </div>
+  );
+}
+
+function MiniBar({ value, max, color = T.green }) {
+  const pct = max ? Math.round((value / max) * 100) : 0;
+  return (
+    <div style={{ height: 6, borderRadius: 99, background: T.creamDark, overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width .4s ease" }} />
+    </div>
+  );
+}
+
+function Badge({ status }) {
+  const s = STATUS[status] || { bg: T.creamDark, text: T.muted, border: T.border };
+  return (
+    <span style={{
+      padding: "4px 12px", borderRadius: 99, fontSize: 12, fontWeight: 700,
+      background: s.bg, color: s.text, border: `1px solid ${s.border}`, whiteSpace: "nowrap",
+    }}>{status}</span>
+  );
+}
+
+function StatCard({ title, value, icon, accent, growth }) {
+  return (
+    <div style={{
+      background: T.white, borderRadius: 20, padding: 24,
+      border: `1px solid ${T.border}`, boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+      transition: "box-shadow .2s",
+    }}
+      onMouseEnter={e => e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,.09)"}
+      onMouseLeave={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,.04)"}
     >
-      {children}
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="animate-pulse bg-white rounded-3xl p-6 border">
-      <div className="h-5 bg-slate-200 rounded w-1/3 mb-4"></div>
-      <div className="h-10 bg-slate-200 rounded w-1/2 mb-5"></div>
-      <div className="h-4 bg-slate-200 rounded"></div>
-    </div>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  icon,
-  color,
-  growth,
-}) {
-  return (
-    <Card className="p-6 hover:shadow-xl transition-all">
-
-      <div className="flex justify-between">
-
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
-
-          <p className="text-slate-500 text-sm">
-            {title}
-          </p>
-
-          <h2 className="text-4xl font-bold mt-3">
-            {value}
-          </h2>
-
-          <div className="flex items-center gap-2 mt-4">
-
-            {growth >= 0 ? (
-              <TrendingUp className="text-green-600" size={18} />
-            ) : (
-              <TrendingDown className="text-red-600" size={18} />
-            )}
-
-            <span
-              className={
-                growth >= 0
-                  ? "text-green-600 font-semibold"
-                  : "text-red-600 font-semibold"
-              }
-            >
-              {Math.abs(growth)}%
-            </span>
-
-            <span className="text-slate-500 text-sm">
-              this month
-            </span>
-
+          <p style={{ fontSize: 13, color: T.muted, margin: 0 }}>{title}</p>
+          <h2 style={{ fontSize: 40, fontWeight: 800, margin: "10px 0 14px", color: T.ink, fontFamily: "Fraunces, serif" }}>{value}</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {growth >= 0
+              ? <TrendingUp size={15} color="#16A34A" />
+              : <TrendingDown size={15} color="#DC2626" />}
+            <span style={{ fontWeight: 700, fontSize: 13, color: growth >= 0 ? "#16A34A" : "#DC2626" }}>{Math.abs(growth)}%</span>
+            <span style={{ fontSize: 12, color: T.muted }}>this month</span>
           </div>
-
         </div>
-
-        <div
-          className={`w-16 h-16 rounded-2xl flex items-center justify-center ${color}`}
-        >
-          {icon}
+        <div style={{ width: 52, height: 52, borderRadius: 14, background: accent + "22", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ color: accent }}>{icon}</span>
         </div>
-
       </div>
-
-    </Card>
-  );
-}
-
-function AppointmentBadge({ status }) {
-  return (
-    <span
-      className={`px-3 py-1 rounded-full border text-xs font-semibold ${STATUS_COLOR[status] ||
-        "bg-slate-100 text-slate-700 border-slate-200"
-        }`}
-    >
-      {status}
-    </span>
-  );
-}
-
-function MiniBar({ value, max }) {
-  return (
-    <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-      <div
-        className="h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all"
-        style={{
-          width: `${(value / max) * 100}%`,
-        }}
-      />
+      <div style={{ height: 3, borderRadius: 99, background: accent, marginTop: 20, opacity: 0.7 }} />
     </div>
   );
 }
 
-/* ===========================
-   Main Component
-=========================== */
-
+/* ─── Main ────────────────────────────────────────── */
 export default function DoctorDashboard() {
-
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [availableFrom, setAvailableFrom] = useState("");
-  const [availableTo, setAvailableTo] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [doctor, setDoctor] = useState({});
+  const [loading, setLoading]         = useState(true);
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const [doctor, setDoctor]           = useState({});
   const [appointments, setAppointments] = useState([]);
   const [availability, setAvailability] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch]           = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [stats, setStats] = useState({
-    totalPatients: 0,
-    todayAppointments: 0,
-    completed: 0,
-    pending: 0,
-    cancelled: 0,
-    earnings: 0,
+    totalPatients: 0, todayAppointments: 0,
+    completed: 0, pending: 0, cancelled: 0, earnings: 0,
   });
-  /* ===========================
-   Load Dashboard
-=========================== */
 
   async function loadDashboard() {
     try {
       setLoading(true);
-
-      const [
-        profileRes,
-        appointmentsRes,
-        availabilityRes,
-      ] = await Promise.all([
+      const [profileRes, apptRes, availRes] = await Promise.all([
         API.get("/doctor/profile"),
         API.get("/doctor/appointments"),
         API.get("/doctor/availability"),
       ]);
-
-      const doctorData = profileRes.data || {};
-      const appointmentData = Array.isArray(appointmentsRes.data)
-        ? appointmentsRes.data
-        : [];
-      const availabilityData = Array.isArray(availabilityRes.data)
-        ? availabilityRes.data
-        : [];
-      setDoctor(doctorData);
-      setAppointments(appointmentData);
-      setAvailability(availabilityData);
-
-      const completed = appointmentData.filter(
-        (a) => a.status === "Completed"
-      ).length;
-
-      const pending = appointmentData.filter(
-        (a) =>
-          a.status === "Pending" ||
-          a.status === "Confirmed"
-      ).length;
-
-      const cancelled = appointmentData.filter(
-        (a) => a.status === "Cancelled"
-      ).length;
+      const apptData  = Array.isArray(apptRes.data)  ? apptRes.data  : [];
+      console.log("Dashboard Appointments:", apptData);
+      const availData = Array.isArray(availRes.data) ? availRes.data : [];
+      setDoctor(profileRes.data || {});
+      setAppointments(apptData);
+      setAvailability(availData);
 
       const today = new Date().toDateString();
-
-      const todayAppointments = appointmentData.filter(
-        (a) =>
-          new Date(a.date).toDateString() === today
-      ).length;
-
-      const totalPatients = new Set(
-        appointmentData.map(
-          (a) => a.patientId || a.patientEmail
-        )
-      ).size;
-
-      const earnings = appointmentData
-        .filter((a) => a.status === "Completed")
-        .reduce(
-          (sum, a) =>
-            sum + Number(a.amount || a.fee || 0),
-          0
-        );
-
-      setStats({
-        totalPatients,
-        todayAppointments,
-        completed,
-        pending,
-        cancelled,
-        earnings,
-      });
-    } catch (error) {
-      console.error(error);
-
-      toast.error(
-        error?.response?.data?.message ||
-        "Failed to load dashboard."
-      );
+      const completed = apptData.filter(a => a.status === "Completed").length;
+      const pending   = apptData.filter(a => a.status === "Pending" || a.status === "Confirmed").length;
+      const cancelled = apptData.filter(a => a.status === "Cancelled").length;
+      const todayAppts = apptData.filter(a => new Date(a.date).toDateString() === today).length;
+      const totalPatients = new Set(apptData.map(a => a.patientId || a.patientEmail)).size;
+      const earnings = apptData.filter(a => a.status === "Completed").reduce((s, a) => s + Number(a.amount || a.fee || 0), 0);
+      setStats({ totalPatients, todayAppointments: todayAppts, completed, pending, cancelled, earnings });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to load dashboard.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+  useEffect(() => { loadDashboard(); }, []);
 
-  /* ===========================
-     Appointment Status
-  =========================== */
-
-  async function updateAppointmentStatus(
-    appointmentId,
-    status
-  ) {
+  async function updateStatus(id, status) {
     try {
-      await API.put("/doctor/appointment/status", {
-        appointmentId,
-        status,
-      });
-
+      await API.put("/doctor/appointment/status", { appointmentId: id, status });
       toast.success("Appointment updated.");
-
-      setAppointments((prev) =>
-        prev.map((item) =>
-          item.id === appointmentId
-            ? {
-              ...item,
-              status,
-            }
-            : item
-        )
-      );
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
       loadDashboard();
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.message ||
-        "Unable to update appointment."
-      );
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Unable to update.");
     }
   }
 
-  /* ===========================
-     Availability
-  =========================== */
+  const filtered = useMemo(() => appointments.filter(a => {
+    const s = a.patientName?.toLowerCase().includes(search.toLowerCase()) || a.email?.toLowerCase().includes(search.toLowerCase());
+    const f = filterStatus === "All" || a.status === filterStatus;
+    return s && f;
+  }), [appointments, search, filterStatus]);
 
-  function toggleAvailability(day) {
-    setAvailability((prev) =>
-      prev.map((item) =>
-        item.day === day
-          ? {
-            ...item,
-            available: !item.available,
-          }
-          : item
-      )
-    );
-  }
+  const maxVal = Math.max(stats.completed, stats.pending, stats.cancelled, 1);
 
-  async function saveAvailability() {
-    try {
-      await API.post("/doctor/availability", {
-        availableFrom,
-        availableTo,
-      });
-
-      toast.success("Availability added.");
-
-      loadDashboard();
-    } catch (error) {
-      console.log(error.response?.data);
-      toast.error("Failed to save availability.");
-    }
-  }
-
-  /* ===========================
-     Filters
-  =========================== */
-
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter((appointment) => {
-
-      const matchesSearch =
-        appointment.patientName
-          ?.toLowerCase()
-          .includes(search.toLowerCase()) ||
-        appointment.email
-          ?.toLowerCase()
-          .includes(search.toLowerCase());
-      const matchesStatus =
-        filterStatus === "All"
-          ? true
-          : appointment.status === filterStatus;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [
-    appointments,
-    search,
-    filterStatus,
-  ]);
-
-  const maxValue = Math.max(
-    stats.completed,
-    stats.pending,
-    stats.cancelled,
-    1
+  /* ─── Nav link ──── */
+  const NavLink = ({ icon, label, path, active }) => (
+    <button onClick={() => navigate(path)} style={{
+      display: "flex", alignItems: "center", gap: 12, width: "100%",
+      padding: "11px 16px", borderRadius: 12, border: "none", cursor: "pointer",
+      background: active ? T.terra : "transparent",
+      color: active ? T.white : "#CBD5E1",
+      fontWeight: active ? 700 : 500, fontSize: 14, transition: "all .15s",
+    }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,.08)"; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+    >
+      {icon}{label}
+    </button>
   );
 
-  /* ===========================
-     Loading Screen
-  =========================== */
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-100 p-6">
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <SkeletonCard key={index} />
-          ))}
-
-        </div>
-        <div className="grid xl:grid-cols-3 gap-6 mt-8">
-          <div className="xl:col-span-2 h-[500px] rounded-3xl bg-white animate-pulse"></div>
-          <div className="h-[500px] rounded-3xl bg-white animate-pulse"></div>
-        </div>
+  if (loading) return (
+    <div style={{ minHeight: "100vh", background: T.cream, padding: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 20 }}>
+        {[...Array(4)].map((_, i) => <Skeleton key={i} />)}
       </div>
-    );
-  }
+    </div>
+  );
+
+  /* ─── Shared card style ─── */
+  const card = {
+    background: T.white, borderRadius: 20,
+    border: `1px solid ${T.border}`, boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+    overflow: "hidden",
+  };
+
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div style={{ minHeight: "100vh", background: T.cream, fontFamily: "Inter, sans-serif", color: T.ink }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap');
+        * { box-sizing: border-box; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius:99px; }
+        input[type=time]::-webkit-calendar-picker-indicator { filter: invert(.4); }
+        select option { background: ${T.white}; color: ${T.ink}; }
+      `}</style>
 
-      {/* Mobile Overlay */}
-
+      {/* Overlay */}
       {drawerOpen && (
-        <div
-          onClick={() => setDrawerOpen(false)}
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-        />
+        <div onClick={() => setDrawerOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 40 }} />
       )}
 
-      {/* Sidebar */}
-
-      <aside
-        className={`
-          fixed top-0 left-0 z-50
-          w-72 h-screen
-          bg-slate-900 text-white
-          transition-transform duration-300
-          ${drawerOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-      >
-        <div className="flex flex-col h-full">
-
-          {/* Logo */}
-
-          <div className="p-6 border-b border-slate-700 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center">
-                <HeartPulse size={24} />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold">
-                  Doctor Panel
-                </h2>
-                <p className="text-slate-400 text-sm">
-                  Healthcare
-                </p>
-              </div>
+      {/* ── Sidebar ─────────────────────────────────── */}
+      <aside style={{
+        position: "fixed", top: 0, left: 0, zIndex: 50,
+        width: 268, height: "100vh",
+        background: "#111827",
+        transform: drawerOpen ? "translateX(0)" : undefined,
+        display: "flex", flexDirection: "column",
+        transition: "transform .25s",
+      }}>
+        {/* Logo */}
+        <div style={{ padding: "24px 20px", borderBottom: "1px solid rgba(255,255,255,.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: T.terra, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <HeartPulse size={22} color={T.white} />
             </div>
-
-            <button
-              onClick={() => setDrawerOpen(false)}
-              className="lg:hidden"
-            >
-              <X size={24} />
-            </button>
-
-          </div>
-
-          {/* Doctor */}
-
-          <div className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-slate-700 flex items-center justify-center">
-                <UserCircle2 size={42} />
-              </div>
-
-              <div>
-
-                <h3 className="font-semibold text-lg">
-                  Dr. {doctor.fullName || "Doctor"}
-                </h3>
-
-                <p className="text-slate-400 text-sm">
-                  {doctor.specialization || "Specialist"}
-                </p>
-
-              </div>
-
+            <div>
+              <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 17, color: T.white, lineHeight: 1.1 }}>CareConnect</div>
+              <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>Doctor Panel</div>
             </div>
-
           </div>
-
-          {/* Navigation */}
-
-          <nav className="flex-1 px-4 space-y-2">
-
-            <button
-              onClick={() => navigate("/doctor/dashboard")}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-blue-600"
-            >
-              <Activity size={18} />
-              Dashboard
-            </button>
-
-            <button
-              onClick={() => navigate("/doctor/appointments")}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-            >
-              <Calendar size={18} />
-              Appointments
-            </button>
-
-            <button
-              onClick={() => navigate("/doctor/availability")}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-            >
-              <Clock3 size={18} />
-              Availability
-            </button>
-
-            <button
-              onClick={() => navigate("/doctor/profile")}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-slate-800 transition"
-            >
-              <UserCircle2 size={18} />
-              Profile
-            </button>
-
-          </nav>
-
-          {/* Refresh */}
-
-          <div className="p-6 border-t border-slate-700">
-
-            <button
-              onClick={loadDashboard}
-              className="w-full flex items-center justify-center gap-2 bg-white text-slate-900 rounded-xl py-3 font-semibold hover:bg-slate-100"
-            >
-              <RefreshCw size={18} />
-              Refresh Dashboard
-            </button>
-
-          </div>
-
+          <button onClick={() => setDrawerOpen(false)} style={{ background: "none", border: "none", color: "#94A3B8", cursor: "pointer", display: "none" }}>
+            <X size={20} />
+          </button>
         </div>
 
+        {/* Doctor info */}
+        <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#1F2937", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <UserCircle2 size={30} color="#94A3B8" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: T.white, fontSize: 14 }}>{doctor.name || "Doctor"}</div>
+              <div style={{ fontSize: 12, color: T.terra, marginTop: 2 }}>{doctor.specialization || "Specialist"}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 4 }}>
+          <NavLink active icon={<Activity size={17} />} label="Dashboard" path="/doctor/dashboard" />
+          <NavLink icon={<Calendar size={17} />} label="Appointments" path="/doctor/appointments" />
+          <NavLink icon={<Clock3 size={17} />} label="Availability" path="/doctor/availability" />
+          <NavLink icon={<UserCircle2 size={17} />} label="Profile" path="/doctor/profile" />
+        </nav>
+
+        <div style={{ padding: 16, borderTop: "1px solid rgba(255,255,255,.08)" }}>
+          <button onClick={loadDashboard} style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            background: T.white, color: T.ink, border: "none", borderRadius: 12,
+            padding: "11px 0", fontWeight: 700, fontSize: 14, cursor: "pointer",
+          }}>
+            <RefreshCw size={15} /> Refresh
+          </button>
+        </div>
       </aside>
 
-      {/* Main */}
-
-      <main className="lg:ml-72 min-h-screen">
+      {/* ── Main ──────────────────────────────────────── */}
+      <main style={{ marginLeft: 268, minHeight: "100vh" }}>
 
         {/* Header */}
-
-        <header className="sticky top-0 bg-white border-b border-slate-200 z-20">
-
-          <div className="flex justify-between items-center px-6 py-5">
-
-            <div className="flex items-center gap-4">
-
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="lg:hidden"
-              >
-                <Menu size={24} />
-              </button>
-
-              <div>
-
-                <h1 className="text-3xl font-bold text-slate-800">
-                  Welcome, Dr. {doctor.name}
-                </h1>
-
-                <p className="text-slate-500 mt-1">
-                  Manage appointments and availability.
-                </p>
-
-              </div>
-
+        <header style={{
+          position: "sticky", top: 0, zIndex: 20,
+          background: "rgba(245,240,232,.92)", backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${T.border}`,
+          padding: "16px 28px",
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <button onClick={() => setDrawerOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", color: T.ink, display: "none" }}>
+              <Menu size={22} />
+            </button>
+            <div>
+              <h1 style={{ fontFamily: "Fraunces, serif", fontWeight: 900, fontSize: 22, margin: 0, color: T.ink }}>
+                Welcome back
+              </h1>
+              <p style={{ fontSize: 13, color: T.muted, margin: "3px 0 0" }}>Manage your appointments and availability</p>
             </div>
-
-            <div className="flex items-center gap-5">
-
-              <button className="relative">
-
-                <Bell size={22} />
-
-                <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                  3
-                </span>
-
-              </button>
-
-              <div className="hidden md:flex items-center gap-3">
-
-                <div className="text-right">
-
-                  <h4 className="font-semibold">
-                    Dr. {doctor.fullName}
-                  </h4>
-
-                  <p className="text-xs text-slate-500">
-                    {doctor.specialization}
-                  </p>
-
-                </div>
-
-                <div className="w-11 h-11 rounded-full bg-slate-200 flex items-center justify-center">
-                  <UserCircle2 />
-                </div>
-
-              </div>
-
-            </div>
-
           </div>
-
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <button style={{ position: "relative", background: "none", border: "none", cursor: "pointer", color: T.ink }}>
+              <Bell size={20} />
+              <span style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: T.terra, color: T.white, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>3</span>
+            </button>
+            <div style={{ width: 1, height: 24, background: T.border }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: T.ink }}>{doctor.name}</div>
+                <div style={{ fontSize: 11, color: T.terra }}>{doctor.specialization}</div>
+              </div>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: T.creamDark, border: `2px solid ${T.terra}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <UserCircle2 size={22} color={T.muted} />
+              </div>
+            </div>
+          </div>
         </header>
 
-        <section className="p-6">
+        <section style={{ padding: 28 }}>
 
-          {/* Statistics */}
-
-          <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-            <StatCard
-              title="Today's Appointments"
-              value={stats.todayAppointments}
-              growth={12}
-              color="bg-blue-100 text-blue-600"
-              icon={<Calendar size={28} />}
-            />
-
-            <StatCard
-              title="Total Patients"
-              value={stats.totalPatients}
-              growth={8}
-              color="bg-green-100 text-green-600"
-              icon={<Users size={28} />}
-            />
-
-            <StatCard
-              title="Completed"
-              value={stats.completed}
-              growth={18}
-              color="bg-cyan-100 text-cyan-600"
-              icon={<BadgeCheck size={28} />}
-            />
-
-            <StatCard
-              title="Pending"
-              value={stats.pending}
-              growth={-4}
-              color="bg-orange-100 text-orange-600"
-              icon={<Clock3 size={28} />}
-            />
-
+          {/* ── Stat cards ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 20 }}>
+            <StatCard title="Today's Appointments" value={stats.todayAppointments} growth={12} accent={T.green} icon={<Calendar size={24} />} />
+            <StatCard title="Total Patients" value={stats.totalPatients} growth={8} accent="#0E7490" icon={<Users size={24} />} />
+            <StatCard title="Completed" value={stats.completed} growth={18} accent={T.green} icon={<BadgeCheck size={24} />} />
+            <StatCard title="Pending / Confirmed" value={stats.pending} growth={-4} accent={T.terra} icon={<Clock3 size={24} />} />
           </div>
-          {/* Analytics + Profile */}
 
-          <div className="grid xl:grid-cols-3 gap-6 mt-8">
+          {/* ── Analytics + Profile ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginTop: 24 }}>
 
             {/* Analytics */}
-
-            <Card className="xl:col-span-2 p-6">
-
-              <div className="flex items-center justify-between mb-6">
-
+            <div style={{ ...card, padding: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
                 <div>
-
-                  <h2 className="text-xl font-bold text-slate-800">
-                    Appointment Analytics
-                  </h2>
-
-                  <p className="text-sm text-slate-500">
-                    Overall appointment performance
-                  </p>
-
+                  <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 20, margin: 0, color: T.ink }}>Appointment Analytics</h2>
+                  <p style={{ fontSize: 13, color: T.muted, margin: "4px 0 0" }}>Overall appointment performance</p>
                 </div>
-
-                <PieChart className="text-blue-600" />
-
+                <PieChart size={20} color={T.terra} />
               </div>
 
-              <div className="space-y-6">
-
-                <div>
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-                      Completed
-                    </span>
-
-                    <span className="font-bold">
-                      {stats.completed}
-                    </span>
-
+              {[
+                { label: "Completed", value: stats.completed, color: T.green },
+                { label: "Pending", value: stats.pending, color: "#D97706" },
+                { label: "Cancelled", value: stats.cancelled, color: "#DC2626" },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{label}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color }}>{value}</span>
                   </div>
-
-                  <MiniBar
-                    value={stats.completed}
-                    max={maxValue}
-                  />
-
+                  <MiniBar value={value} max={maxVal} color={color} />
                 </div>
+              ))}
 
-                <div>
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-                      Pending
-                    </span>
-
-                    <span className="font-bold">
-                      {stats.pending}
-                    </span>
-
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14, marginTop: 28 }}>
+                {[
+                  { label: "Total Bookings", value: appointments.length, icon: <ClipboardList size={18} color={T.green} />, bg: T.greenLight },
+                  { label: "Earnings", value: `₹${stats.earnings}`, icon: <HeartPulse size={18} color={T.terra} />, bg: T.terraLight },
+                  { label: "Working Days", value: availability.filter(a => a.available).length, icon: <CalendarDays size={18} color="#7C3AED" />, bg: "#F3F0FF" },
+                ].map(({ label, value, icon, bg }) => (
+                  <div key={label} style={{ background: bg, borderRadius: 14, padding: "18px 14px", textAlign: "center" }}>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>{icon}</div>
+                    <div style={{ fontFamily: "Fraunces, serif", fontWeight: 800, fontSize: 26, color: T.ink }}>{value}</div>
+                    <div style={{ fontSize: 12, color: T.muted, marginTop: 4 }}>{label}</div>
                   </div>
+                ))}
+              </div>
+            </div>
 
-                  <MiniBar
-                    value={stats.pending}
-                    max={maxValue}
-                  />
+            {/* Doctor profile card */}
+            <div style={{ ...card, padding: 28, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ width: 88, height: 88, borderRadius: "50%", background: T.creamDark, border: `3px solid ${T.terra}`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                <UserCircle2 size={52} color={T.muted} />
+              </div>
+              <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 20, color: T.ink, margin: 0 }}>{doctor.name}</h2>
+              <span style={{ fontSize: 13, color: T.terra, fontWeight: 600, marginTop: 4 }}>{doctor.specialization}</span>
 
-                </div>
-
-                <div>
-
-                  <div className="flex justify-between mb-2">
-
-                    <span className="font-medium">
-                      Cancelled
-                    </span>
-
-                    <span className="font-bold">
-                      {stats.cancelled}
-                    </span>
-
+              <div style={{ width: "100%", marginTop: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+                {[
+                  { icon: <Mail size={15} color={T.green} />, val: doctor.email },
+                  { icon: <Phone size={15} color={T.green} />, val: doctor.phone },
+                  { icon: <Stethoscope size={15} color={T.green} />, val: doctor.department || doctor.specialization },
+                ].map(({ icon, val }, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: T.cream, borderRadius: 10 }}>
+                    {icon}
+                    <span style={{ fontSize: 13, color: T.ink, fontWeight: 500 }}>{val}</span>
                   </div>
-
-                  <MiniBar
-                    value={stats.cancelled}
-                    max={maxValue}
-                  />
-
-                </div>
-
+                ))}
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mt-8">
-
-                <div className="rounded-2xl bg-blue-50 p-5 text-center">
-
-                  <ClipboardList
-                    className="mx-auto text-blue-600 mb-2"
-                  />
-
-                  <h3 className="text-2xl font-bold">
-                    {appointments.length}
-                  </h3>
-
-                  <p className="text-sm text-slate-500">
-                    Total Appointments
-                  </p>
-
-                </div>
-
-                <div className="rounded-2xl bg-green-50 p-5 text-center">
-
-                  <HeartPulse
-                    className="mx-auto text-green-600 mb-2"
-                  />
-
-                  <h3 className="text-2xl font-bold">
-                    ₹{stats.earnings}
-                  </h3>
-
-                  <p className="text-sm text-slate-500">
-                    Earnings
-                  </p>
-
-                </div>
-
-                <div className="rounded-2xl bg-purple-50 p-5 text-center">
-
-                  <CalendarDays
-                    className="mx-auto text-purple-600 mb-2"
-                  />
-
-                  <h3 className="text-2xl font-bold">
-                    {
-                      availability.filter(
-                        (a) => a.available
-                      ).length
-                    }
-                  </h3>
-
-                  <p className="text-sm text-slate-500">
-                    Working Days
-                  </p>
-
-                </div>
-
-              </div>
-
-            </Card>
-
-            {/* Doctor Profile */}
-
-            <Card className="p-6">
-
-              <div className="text-center">
-
-                <div className="mx-auto w-28 h-28 rounded-full bg-slate-200 flex items-center justify-center">
-
-                  <UserCircle2 size={70} />
-
-                </div>
-
-                <h2 className="text-2xl font-bold mt-4">
-                  Dr. {doctor.fullName}
-                </h2>
-
-                <p className="text-slate-500">
-                  {doctor.specialization}
-                </p>
-
-              </div>
-
-              <div className="space-y-5 mt-8">
-
-                <div className="flex items-center gap-3">
-
-                  <Mail
-                    className="text-blue-600"
-                    size={18}
-                  />
-
-                  <span>{doctor.email}</span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  <Phone
-                    className="text-green-600"
-                    size={18}
-                  />
-
-                  <span>{doctor.phone}</span>
-
-                </div>
-
-                <div className="flex items-center gap-3">
-
-                  <Stethoscope
-                    className="text-purple-600"
-                    size={18}
-                  />
-
-                  <span>
-                    {doctor.department ||
-                      doctor.specialization}
-                  </span>
-
-                </div>
-
-              </div>
-
-              <button
-                onClick={() =>
-                  navigate("/doctor/profile")
-                }
-                className="mt-8 w-full rounded-xl bg-blue-600 py-3 text-white font-semibold hover:bg-blue-700 transition"
+              <button onClick={() => navigate("/doctor/profile")} style={{
+                marginTop: 24, width: "100%", padding: "12px 0", borderRadius: 12,
+                background: T.terra, color: T.white, border: "none",
+                fontWeight: 700, fontSize: 14, cursor: "pointer",
+                transition: "background .15s",
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = "#A8502A"}
+                onMouseLeave={e => e.currentTarget.style.background = T.terra}
               >
-                View Profile
+                View Full Profile
               </button>
-
-            </Card>
-
+            </div>
           </div>
-          {/* Recent Appointments */}
 
-          <Card className="mt-8 p-6">
-
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-
+          {/* ── Recent Appointments table ── */}
+          <div style={{ ...card, marginTop: 24 }}>
+            <div style={{ padding: "24px 28px", borderBottom: `1px solid ${T.border}`, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 14 }}>
               <div>
-
-                <h2 className="text-2xl font-bold">
-                  Recent Appointments
-                </h2>
-
-                <p className="text-slate-500">
-                  Search and manage appointments.
-                </p>
-
+                <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 20, margin: 0 }}>Recent Appointments</h2>
+                <p style={{ fontSize: 13, color: T.muted, margin: "4px 0 0" }}>Search and manage patient appointments</p>
               </div>
-
-              <div className="flex gap-3 flex-wrap">
-
-                <div className="relative">
-
-                  <Search
-                    size={18}
-                    className="absolute left-3 top-3 text-slate-400"
-                  />
-
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ position: "relative" }}>
+                  <Search size={15} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: T.muted }} />
                   <input
-                    type="text"
-                    placeholder="Search patient..."
-                    value={search}
-                    onChange={(e) =>
-                      setSearch(e.target.value)
-                    }
-                    className="pl-10 pr-4 py-3 rounded-xl border border-slate-300 outline-none focus:ring-2 focus:ring-blue-500"
+                    value={search} onChange={e => setSearch(e.target.value)}
+                    placeholder="Search patient…"
+                    style={{ paddingLeft: 36, paddingRight: 14, paddingTop: 10, paddingBottom: 10, borderRadius: 10, border: `1px solid ${T.border}`, fontSize: 13, outline: "none", background: T.cream, color: T.ink, width: 200 }}
                   />
-
                 </div>
-
-                <select
-                  value={filterStatus}
-                  onChange={(e) =>
-                    setFilterStatus(e.target.value)
-                  }
-                  className="px-4 rounded-xl border border-slate-300"
-                >
-                  <option value="All">All</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Cancelled">Cancelled</option>
+                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+                  style={{ padding: "10px 14px", borderRadius: 10, border: `1px solid ${T.border}`, fontSize: 13, background: T.cream, color: T.ink, cursor: "pointer" }}>
+                  {["All", "Pending", "Confirmed", "Completed", "Cancelled"].map(s => <option key={s}>{s}</option>)}
                 </select>
-
               </div>
-
             </div>
 
-            <div className="overflow-x-auto">
-
-              <table className="w-full">
-
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-
-                  <tr className="border-b border-slate-200 text-left">
-
-                    <th className="px-3 py-4">Patient</th>
-
-                    <th className="px-3 py-4">Date</th>
-
-                    <th className="px-3 py-4">Time</th>
-
-                    <th className="px-3 py-4">Contact</th>
-
-                    <th className="px-3 py-4">Status</th>
-
-                    <th className="px-3 py-4 text-center">
-                      Actions
-                    </th>
-
+                  <tr style={{ background: T.cream }}>
+                    {["Patient", "Date", "Time", "Contact", "Status", "Actions"].map(h => (
+                      <th key={h} style={{ padding: "13px 20px", textAlign: h === "Actions" ? "center" : "left", fontSize: 12, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: .5, whiteSpace: "nowrap" }}>{h}</th>
+                    ))}
                   </tr>
-
                 </thead>
-
                 <tbody>
-
-                  {filteredAppointments.length === 0 ? (
-
+                  {filtered.length === 0 ? (
                     <tr>
-
-                      <td
-                        colSpan={6}
-                        className="text-center py-16 text-slate-500"
-                      >
-
-                        <ClipboardList
-                          size={48}
-                          className="mx-auto mb-3 text-slate-300"
-                        />
-
+                      <td colSpan={6} style={{ textAlign: "center", padding: "56px 0", color: T.muted }}>
+                        <ClipboardList size={44} style={{ opacity: .3, display: "block", margin: "0 auto 12px" }} />
                         No appointments found.
-
                       </td>
-
                     </tr>
-
-                  ) : (
-
-                    filteredAppointments.map((appointment) => (
-
-                      <tr
-                        key={appointment.id}
-                        className="border-b border-slate-100 hover:bg-slate-50 transition"
-                      >
-
-                        <td className="px-3 py-5">
-
-                          <div className="flex items-center gap-3">
-
-                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-
-                              <UserCircle2 className="text-blue-600" />
-
-                            </div>
-
-                            <div>
-
-                              <h4 className="font-semibold">
-                                {appointment.patientName}
-                              </h4>
-
-                              <p className="text-sm text-slate-500">
-                                {appointment.gender} • {appointment.age} yrs
-                              </p>
-
-                            </div>
-
+                  ) : filtered.map(a => (
+                    <tr key={a.id} style={{ borderTop: `1px solid ${T.border}`, transition: "background .12s" }}
+                      onMouseEnter={e => e.currentTarget.style.background = T.cream}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      <td style={{ padding: "16px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div style={{ width: 40, height: 40, borderRadius: "50%", background: T.greenLight, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <UserCircle2 size={22} color={T.green} />
                           </div>
-
-                        </td>
-
-                        <td className="px-3 py-5 whitespace-nowrap">
-                          {appointment.date}
-                        </td>
-
-                        <td className="px-3 py-5 whitespace-nowrap">
-                          {appointment.time}
-                        </td>
-
-                        <td className="px-3 py-5">
-
-                          <div className="space-y-1">
-
-                            <div className="flex items-center gap-2">
-
-                              <Phone
-                                size={15}
-                                className="text-green-600"
-                              />
-
-                              <span className="text-sm">
-                                {appointment.phone}
-                              </span>
-
-                            </div>
-
-                            <div className="flex items-center gap-2">
-
-                              <Mail
-                                size={15}
-                                className="text-blue-600"
-                              />
-
-                              <span className="text-sm">
-                                {appointment.email}
-                              </span>
-
-                            </div>
-
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: T.ink }}>{a.patientName}</div>
+                            <div style={{ fontSize: 12, color: T.muted }}>{a.gender} · {a.age} yrs</div>
                           </div>
-
-                        </td>
-
-                        <td className="px-3 py-5">
-
-                          <AppointmentBadge
-                            status={appointment.status}
-                          />
-
-                        </td>
-
-                        <td className="px-3 py-5">
-
-                          <div className="flex justify-center gap-2">
-
-                            <button
-                              className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200"
-                              title="View"
-                            >
-                              <Eye size={18} />
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/doctor/profile?id=${appointment.patientId}`
-                                )
-                              }
-                              className="p-2 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200"
-                              title="Patient"
-                            >
-                              <Edit3 size={18} />
-                            </button>
-
-                            {appointment.status !==
-                              "Completed" && (
-
-                                <button
-                                  onClick={() =>
-                                    updateAppointmentStatus(
-                                      appointment.id,
-                                      "Completed"
-                                    )
-                                  }
-                                  className="p-2 rounded-lg bg-green-100 text-green-700 hover:bg-green-200"
-                                  title="Complete"
-                                >
-                                  <CheckCircle2 size={18} />
-                                </button>
-
-                              )}
-
-                            {appointment.status !==
-                              "Cancelled" && (
-
-                                <button
-                                  onClick={() =>
-                                    updateAppointmentStatus(
-                                      appointment.id,
-                                      "Cancelled"
-                                    )
-                                  }
-                                  className="p-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
-                                  title="Cancel"
-                                >
-                                  <XCircle size={18} />
-                                </button>
-
-                              )}
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-
-                    ))
-
-                  )}
-
+                        </div>
+                      </td>
+                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.date}</td>
+                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.time}</td>
+                      <td style={{ padding: "16px 20px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.phone}</span></div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.email}</span></div>
+                        </div>
+                      </td>
+                      <td style={{ padding: "16px 20px" }}><Badge status={a.status} /></td>
+                      <td style={{ padding: "16px 20px" }}>
+                        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
+                          <Btn icon={<Eye size={15} />} title="View" bg={T.creamDark} fg={T.ink} />
+                          <Btn icon={<Edit3 size={15} />} title="Patient" bg={T.greenLight} fg={T.green} onClick={() => navigate(`/doctor/profile?id=${a.patientId}`)} />
+                          {a.status !== "Completed" && <Btn icon={<CheckCircle2 size={15} />} title="Complete" bg="#DCFCE7" fg="#16A34A" onClick={() => updateStatus(a.id, "Completed")} />}
+                          {a.status !== "Cancelled" && <Btn icon={<XCircle size={15} />} title="Cancel" bg="#FEE2E2" fg="#DC2626" onClick={() => updateStatus(a.id, "Cancelled")} />}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
-
               </table>
-
             </div>
-
-          </Card>
-          {/* Availability + Quick Overview */}
-
-          <div className="grid xl:grid-cols-3 gap-6 mt-8">
-
-            {/* Weekly Availability */}
-
-            <Card className="xl:col-span-2 p-6">
-
-              <input
-                type="datetime-local"
-                value={availableFrom}
-                onChange={(e) => setAvailableFrom(e.target.value)}
-              />
-
-              <input
-                type="datetime-local"
-                value={availableTo}
-                onChange={(e) => setAvailableTo(e.target.value)}
-              />
-
-              <button onClick={saveAvailability}>
-                Save
-              </button>
-
-              <div className="grid md:grid-cols-2 gap-4">
-
-                {(availability.length
-                  ? availability
-                  : DAYS.map((day) => ({
-                    day,
-                    available: false,
-                    startTime: "09:00",
-                    endTime: "17:00",
-                  }))
-                ).map((item) => (
-
-                  <div
-                    key={item.day}
-                    className={`rounded-2xl border p-5 transition ${item.available
-                      ? "border-green-300 bg-green-50"
-                      : "border-slate-200 bg-white"
-                      }`}
-                  >
-
-                    <div className="flex justify-between items-center">
-
-                      <div>
-
-                        <h3 className="font-bold">
-                          {item.day}
-                        </h3>
-
-                        <p className="text-sm text-slate-500">
-                          {item.available
-                            ? "Available"
-                            : "Unavailable"}
-                        </p>
-
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          toggleAvailability(item.day)
-                        }
-                        className={`relative w-14 h-8 rounded-full transition ${item.available
-                          ? "bg-green-500"
-                          : "bg-slate-300"
-                          }`}
-                      >
-
-                        <span
-                          className={`absolute top-1 h-6 w-6 rounded-full bg-white transition-all ${item.available
-                            ? "left-7"
-                            : "left-1"
-                            }`}
-                        />
-
-                      </button>
-
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 mt-5">
-
-                      <div>
-
-                        <label className="text-sm text-slate-500">
-                          Start Time
-                        </label>
-
-                        <input
-                          type="time"
-                          value={item.startTime || ""}
-                          disabled={!item.available}
-                          onChange={(e) =>
-                            setAvailability((prev) =>
-                              prev.map((d) =>
-                                d.day === item.day
-                                  ? {
-                                    ...d,
-                                    startTime:
-                                      e.target.value,
-                                  }
-                                  : d
-                              )
-                            )
-                          }
-                          className="mt-1 w-full border rounded-xl px-3 py-2 disabled:bg-slate-100"
-                        />
-
-                      </div>
-
-                      <div>
-
-                        <label className="text-sm text-slate-500">
-                          End Time
-                        </label>
-
-                        <input
-                          type="time"
-                          value={item.endTime || ""}
-                          disabled={!item.available}
-                          onChange={(e) =>
-                            setAvailability((prev) =>
-                              prev.map((d) =>
-                                d.day === item.day
-                                  ? {
-                                    ...d,
-                                    endTime:
-                                      e.target.value,
-                                  }
-                                  : d
-                              )
-                            )
-                          }
-                          className="mt-1 w-full border rounded-xl px-3 py-2 disabled:bg-slate-100"
-                        />
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            </Card>
-
-            {/* Quick Overview */}
-
-            <Card className="p-6">
-
-              <div className="flex justify-between items-center mb-6">
-
-                <h2 className="text-xl font-bold">
-                  Quick Overview
-                </h2>
-
-                <TimerReset className="text-blue-600" />
-
-              </div>
-
-              <div className="space-y-5">
-
-                <div className="rounded-2xl bg-slate-50 p-4">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span>Completed</span>
-
-                    <span className="font-bold">
-                      {stats.completed}
-                    </span>
-
-                  </div>
-
-                  <MiniBar
-                    value={stats.completed}
-                    max={maxValue}
-                  />
-
-                </div>
-
-                <div className="rounded-2xl bg-slate-50 p-4">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span>Pending</span>
-
-                    <span className="font-bold">
-                      {stats.pending}
-                    </span>
-
-                  </div>
-
-                  <MiniBar
-                    value={stats.pending}
-                    max={maxValue}
-                  />
-
-                </div>
-
-                <div className="rounded-2xl bg-slate-50 p-4">
-
-                  <div className="flex justify-between mb-2">
-
-                    <span>Cancelled</span>
-
-                    <span className="font-bold">
-                      {stats.cancelled}
-                    </span>
-
-                  </div>
-
-                  <MiniBar
-                    value={stats.cancelled}
-                    max={maxValue}
-                  />
-
-                </div>
-
-                <div className="rounded-2xl bg-blue-600 text-white p-5">
-
-                  <h3 className="font-bold text-lg">
-                    Today's Schedule
-                  </h3>
-
-                  <p className="mt-2 text-blue-100">
-                    {stats.todayAppointments} appointment(s)
-                    scheduled today.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </Card>
-
           </div>
 
-          {/* Upcoming Appointments */}
+          {/* ── Upcoming + Quick Overview ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 20, marginTop: 24 }}>
 
-          <Card className="mt-8 p-6">
-
-            <div className="flex justify-between items-center mb-6">
-
-              <div>
-
-                <h2 className="text-2xl font-bold">
-                  Upcoming Appointments
-                </h2>
-
-                <p className="text-slate-500">
-                  Next scheduled patients
-                </p>
-
-              </div>
-
-            </div>
-
-            <div className="space-y-4">
-
-              {filteredAppointments
-                .filter(
-                  (a) =>
-                    a.status === "Pending" ||
-                    a.status === "Confirmed"
-                )
-                .slice(0, 5)
-                .map((appointment) => (
-
-                  <div
-                    key={appointment.id}
-                    className="rounded-2xl border border-slate-200 p-4 hover:shadow-md transition"
-                  >
-
-                    <div className="flex justify-between items-start">
-
-                      <div>
-
-                        <h3 className="font-semibold">
-                          {appointment.patientName}
-                        </h3>
-
-                        <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
-
-                          <Calendar size={15} />
-
-                          {appointment.date}
-
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-
-                          <Clock3 size={15} />
-
-                          {appointment.time}
-
-                        </div>
-
+            {/* Upcoming */}
+            <div style={{ ...card, padding: 28 }}>
+              <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 20, margin: "0 0 20px", color: T.ink }}>Upcoming Appointments</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {filtered.filter(a => a.status === "Pending" || a.status === "Confirmed").slice(0, 5).map(a => (
+                  <div key={a.id} style={{
+                    display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                    padding: 16, borderRadius: 12, background: T.cream, border: `1px solid ${T.border}`,
+                    transition: "box-shadow .15s",
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,.07)"}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: T.ink }}>{a.patientName}</div>
+                      <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Calendar size={12} />{a.date}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Clock3 size={12} />{a.time}</span>
                       </div>
-
-                      <AppointmentBadge
-                        status={appointment.status}
-                      />
-
                     </div>
-
+                    <Badge status={a.status} />
                   </div>
-
                 ))}
-
-              {filteredAppointments.filter(
-                (a) =>
-                  a.status === "Pending" ||
-                  a.status === "Confirmed"
-              ).length === 0 && (
-
-                  <div className="text-center py-10 text-slate-500">
-
-                    <CalendarDays
-                      size={48}
-                      className="mx-auto mb-3 text-slate-300"
-                    />
-
+                {filtered.filter(a => a.status === "Pending" || a.status === "Confirmed").length === 0 && (
+                  <div style={{ textAlign: "center", padding: "36px 0", color: T.muted }}>
+                    <CalendarDays size={44} style={{ opacity: .3, display: "block", margin: "0 auto 12px" }} />
                     No upcoming appointments.
-
                   </div>
-
                 )}
-
+              </div>
             </div>
 
-          </Card>
-          {/* Activity Feed */}
-
-          <Card className="mt-8 p-6">
-
-            <div className="flex items-center justify-between mb-6">
-
-              <div>
-
-                <h2 className="text-2xl font-bold text-slate-800">
-                  Activity Feed
-                </h2>
-
-                <p className="text-slate-500">
-                  Latest doctor activities
+            {/* Quick overview */}
+            <div style={{ ...card, padding: 28 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 20, margin: 0 }}>Quick Overview</h2>
+                <TimerReset size={18} color={T.terra} />
+              </div>
+              {[
+                { label: "Completed", value: stats.completed, color: T.green },
+                { label: "Pending", value: stats.pending, color: "#D97706" },
+                { label: "Cancelled", value: stats.cancelled, color: "#DC2626" },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ background: T.cream, borderRadius: 12, padding: 16, marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>{label}</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color }}>{value}</span>
+                  </div>
+                  <MiniBar value={value} max={maxVal} color={color} />
+                </div>
+              ))}
+              <div style={{ background: T.green, borderRadius: 14, padding: 20, marginTop: 8 }}>
+                <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 16, color: T.white }}>Today's Schedule</div>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", margin: "8px 0 0" }}>
+                  {stats.todayAppointments} appointment{stats.todayAppointments !== 1 ? "s" : ""} scheduled today.
                 </p>
-
               </div>
-
-              <Bell className="text-blue-600" />
-
             </div>
-
-            <div className="space-y-5">
-
-              <div className="flex gap-4">
-
-                <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center">
-
-                  <CheckCircle2 className="text-green-600" />
-
-                </div>
-
-                <div>
-
-                  <h4 className="font-semibold">
-                    Appointment Completed
-                  </h4>
-
-                  <p className="text-sm text-slate-500">
-                    A consultation has been completed successfully.
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="flex gap-4">
-
-                <div className="w-11 h-11 rounded-full bg-yellow-100 flex items-center justify-center">
-
-                  <Clock3 className="text-yellow-600" />
-
-                </div>
-
-                <div>
-
-                  <h4 className="font-semibold">
-                    Pending Appointments
-                  </h4>
-
-                  <p className="text-sm text-slate-500">
-                    {stats.pending} appointment(s) are waiting for action.
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="flex gap-4">
-
-                <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center">
-
-                  <Users className="text-blue-600" />
-
-                </div>
-
-                <div>
-
-                  <h4 className="font-semibold">
-                    Total Patients
-                  </h4>
-
-                  <p className="text-sm text-slate-500">
-                    You have treated {stats.totalPatients} patient(s).
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div className="flex gap-4">
-
-                <div className="w-11 h-11 rounded-full bg-red-100 flex items-center justify-center">
-
-                  <XCircle className="text-red-600" />
-
-                </div>
-
-                <div>
-
-                  <h4 className="font-semibold">
-                    Cancelled Appointments
-                  </h4>
-
-                  <p className="text-sm text-slate-500">
-                    {stats.cancelled} appointment(s) have been cancelled.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </Card>
+          </div>
 
           {/* Footer */}
-
-          <div className="mt-10 border-t border-slate-200 pt-6 flex flex-col md:flex-row items-center justify-between">
-
+          <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${T.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
             <div>
-
-              <h3 className="font-bold text-slate-800">
-                Healthcare Management System
-              </h3>
-
-              <p className="text-sm text-slate-500 mt-1">
-                Doctor Dashboard • Version 1.0
-              </p>
-
+              <div style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 16, color: T.ink }}>CareConnect</div>
+              <div style={{ fontSize: 12, color: T.muted, marginTop: 3 }}>Doctor Dashboard · v1.0</div>
             </div>
-
-            <button
-              onClick={loadDashboard}
-              className="mt-4 md:mt-0 flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition"
-            >
-              <RefreshCw size={18} />
-              Refresh Dashboard
+            <button onClick={loadDashboard} style={{
+              display: "flex", alignItems: "center", gap: 8, background: T.green,
+              color: T.white, border: "none", borderRadius: 12, padding: "12px 22px",
+              fontWeight: 700, fontSize: 14, cursor: "pointer",
+            }}>
+              <RefreshCw size={15} /> Refresh Dashboard
             </button>
-
           </div>
 
         </section>
-
       </main>
-
     </div>
-
   );
+}
 
+/* Tiny icon button */
+function Btn({ icon, title, bg, fg, onClick }) {
+  return (
+    <button title={title} onClick={onClick} style={{
+      width: 34, height: 34, borderRadius: 8, border: "none", cursor: "pointer",
+      background: bg, color: fg, display: "flex", alignItems: "center", justifyContent: "center",
+      transition: "opacity .15s",
+    }}
+      onMouseEnter={e => e.currentTarget.style.opacity = ".75"}
+      onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+      {icon}
+    </button>
+  );
 }
