@@ -25,16 +25,17 @@ public class PatientController : ControllerBase
     {
         var doctors = _context.Doctors
             .Include(x => x.User)
-            .Select(d => new
-            {
-                d.Id,
-                Name = d.User.FullName,
-                d.User.Email,
-                d.Specialization,
-                d.HospitalName,
-                d.Fee,
-                d.About
-            })
+.Select(d => new
+{
+    d.Id,
+    Name = d.User.FullName,
+    d.User.Email,
+    d.Specialization,
+    d.HospitalName,
+    d.Fee,
+    d.About,
+    ImageUrl = d.ImageUrl
+})
             .ToList();
 
         return Ok(doctors);
@@ -542,7 +543,8 @@ public class PatientController : ControllerBase
             city = user.City,
             state = user.State,
             country = user.Country,
-            pinCode = user.PinCode
+            pinCode = user.PinCode,
+            avatarUrl = user.AvatarUrl
         });
     }
 
@@ -568,6 +570,7 @@ public class PatientController : ControllerBase
         user.State = dto.State;
         user.Country = dto.Country;
         user.PinCode = dto.PinCode;
+        user.AvatarUrl = dto.AvatarUrl;
 
         _context.SaveChanges();
 
@@ -584,6 +587,48 @@ public class PatientController : ControllerBase
             state = user.State,
             country = user.Country,
             pinCode = user.PinCode
+        });
+    }
+    [HttpPost("avatar")]
+    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file selected.");
+
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var user = _context.Users
+            .FirstOrDefault(x => x.Id == userId);
+
+        if (user == null)
+            return NotFound("User not found");
+
+        var folder = Path.Combine(
+            Directory.GetCurrentDirectory(),
+            "wwwroot",
+            "avatars");
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        var fileName = Guid.NewGuid().ToString() +
+                       Path.GetExtension(file.FileName);
+
+        var path = Path.Combine(folder, fileName);
+
+        using (var stream = new FileStream(path, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        user.AvatarUrl = "/avatars/" + fileName;
+
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            avatarUrl = user.AvatarUrl
         });
     }
 }

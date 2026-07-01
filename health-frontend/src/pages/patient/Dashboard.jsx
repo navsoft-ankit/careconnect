@@ -405,11 +405,15 @@ export default function Dashboard() {
                                 key={doctor.id}
                                 className="bg-white rounded-2xl border border-[#E4DFD3] overflow-hidden hover:shadow-md transition"
                             >
-                                <img
-                                    src={doctor.image || getStockImage(doctor.id)}
-                                    className="w-full h-56 object-cover"
-                                    alt={displayDoctorName(doctor.name)}
-                                />
+<img
+    src={
+        doctor.imageUrl
+            ? `http://localhost:5008${doctor.imageUrl}`
+            : getStockImage(doctor.id)
+    }
+    className="w-full h-56 object-cover"
+    alt={displayDoctorName(doctor.name)}
+/>
 
                                 <div className="p-6 font-[system-ui,sans-serif]">
                                     <h3 className="text-lg font-semibold font-[Georgia,serif]">
@@ -501,7 +505,7 @@ export default function Dashboard() {
 
             {/* EMERGENCY */}
             <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-12">
-                <div className="rounded-3xl bg-[#B5562C] p-10 lg:p-12 text-white flex flex-col lg:flex-row justify-between items-center gap-8">
+                <div className="rounded-3xl bg-[#991B1B] p-10 lg:p-12 text-white flex flex-col lg:flex-row justify-between items-center gap-8">
                     <div>
                         <h2 className="text-3xl lg:text-4xl font-normal">
                             Need emergency assistance?
@@ -513,7 +517,7 @@ export default function Dashboard() {
 
                     <a
                         href="/patient/ambulance"
-                        className="bg-white text-[#B5562C] px-8 py-4 rounded-full font-medium hover:scale-[1.03] transition whitespace-nowrap font-[system-ui,sans-serif]"
+                        className="bg-white text-[#991B1B] px-8 py-4 rounded-full font-medium hover:scale-[1.03] transition whitespace-nowrap font-[system-ui,sans-serif]"
                     >
                         Book Ambulance
                     </a>
@@ -553,9 +557,9 @@ export default function Dashboard() {
                                         className="border-t border-[#E4DFD3] hover:bg-[#FAF8F3]/60"
                                     >
                                         <td className="p-5">{order.productName}</td>
-<td className="p-5">
-    {new Date(order.orderDate).toLocaleDateString("en-IN")}
-</td>
+                                        <td className="p-5">
+                                            {new Date(order.orderDate).toLocaleDateString("en-IN")}
+                                        </td>
                                         <td className="p-5">
                                             <span className="bg-[#3E7C59]/10 text-[#3E7C59] px-3 py-1 rounded-full">
                                                 {order.status}

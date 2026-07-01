@@ -29,4 +29,6 @@ public class AppUser
     public string? Country { get; set; }
 
     public string? PinCode { get; set; }
+
+    public string? AvatarUrl { get; set; }
 }

@@ -21,6 +21,7 @@ namespace HEALTHCARE.Data
         public DbSet<AmbulanceRequest> AmbulanceRequests { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<HospitalLocation> HospitalLocations { get; set; }
+        public DbSet<Prescription> Prescriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +44,10 @@ namespace HEALTHCARE.Data
                 .WithMany()
                 .HasForeignKey(a => a.DoctorAvailabilityId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Prescription>()
+                .HasIndex(p => p.AppointmentId)
+                .IsUnique();
         }
     }
 }

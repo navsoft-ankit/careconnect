@@ -219,13 +219,13 @@ export default function Doctors() {
                                 className="group bg-white rounded-[24px] overflow-hidden border border-[#E4DFD3] hover:border-[#16332B]/25 hover:shadow-[0_25px_50px_-25px_rgba(22,51,43,0.25)] transition-all duration-300 flex flex-col"
                             >
                                 <div className="relative h-60 bg-gradient-to-b from-[#EFEAE0] to-[#E4DFD3] flex items-center justify-center overflow-hidden">
-                                    {doc.profileImage ? (
-                                        <img
-                                            src={doc.profileImage}
-                                            alt={doc.name}
-                                            className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
-                                        />
-                                    ) : (
+{doc.imageUrl ? (
+    <img
+        src={`http://localhost:5008${doc.imageUrl}`}
+        alt={doc.name}
+        className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
+    />
+) : (
                                         <div
                                             className="w-24 h-24 rounded-full bg-[#16332B] text-white flex items-center justify-center font-medium shadow-lg"
                                             style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: "2.5rem" }}

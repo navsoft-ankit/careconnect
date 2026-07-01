@@ -141,7 +141,8 @@ public class DoctorController : ControllerBase
                 d.Specialization,
                 d.HospitalName,
                 d.Fee,
-                d.About
+                d.About,
+                ImageUrl = d.ImageUrl
             })
             .FirstOrDefault();
 
@@ -236,7 +237,7 @@ public class DoctorController : ControllerBase
 
         return Ok("Deleted successfully");
     }
-    
+
     [HttpPut("profile")]
     public IActionResult UpdateProfile(UpdateDoctorProfileDto dto)
     {
@@ -262,9 +263,52 @@ public class DoctorController : ControllerBase
         doctor.HospitalName = dto.HospitalName;
         doctor.Fee = dto.Fee;
         doctor.About = dto.About;
-
+        doctor.ImageUrl = dto.ImageUrl;
         _context.SaveChanges();
 
         return Ok("Profile updated successfully");
     }
+    [HttpPost("upload-image")]
+public async Task<IActionResult> UploadImage(IFormFile image)
+{
+    if (image == null || image.Length == 0)
+        return BadRequest("No image selected.");
+
+    var userId = int.Parse(
+        User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+    var doctor = _context.Doctors
+        .FirstOrDefault(x => x.UserId == userId);
+
+    if (doctor == null)
+        return NotFound("Doctor not found");
+
+    var folder = Path.Combine(
+        Directory.GetCurrentDirectory(),
+        "wwwroot",
+        "doctor-images");
+
+    if (!Directory.Exists(folder))
+        Directory.CreateDirectory(folder);
+
+    var fileName =
+        Guid.NewGuid().ToString() +
+        Path.GetExtension(image.FileName);
+
+    var path = Path.Combine(folder, fileName);
+
+    using (var stream = new FileStream(path, FileMode.Create))
+    {
+        await image.CopyToAsync(stream);
+    }
+
+    doctor.ImageUrl = "/doctor-images/" + fileName;
+
+    _context.SaveChanges();
+
+    return Ok(new
+    {
+        imageUrl = doctor.ImageUrl
+    });
+}
 }

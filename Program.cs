@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using HEALTHCARE.Services;
 using HEALTHCARE.Data;
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,7 @@ builder.Services.AddSwaggerGen();
 // Auth
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<PrescriptionPdfService>();
 
 // CORS (IMPORTANT)
 builder.Services.AddCors(options =>
@@ -60,6 +62,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable static files (doctor-images folder)
+app.UseStaticFiles();
 
 // CORS ENABLE
 app.UseCors("AllowAll");

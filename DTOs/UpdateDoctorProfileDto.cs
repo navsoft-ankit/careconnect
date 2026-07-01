@@ -8,4 +8,5 @@ public class UpdateDoctorProfileDto
     public string HospitalName { get; set; }
     public decimal Fee { get; set; }
     public string? About { get; set; }
+    public string? ImageUrl { get; set; }
 }
