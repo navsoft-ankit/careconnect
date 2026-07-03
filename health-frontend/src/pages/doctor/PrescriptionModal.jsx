@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { X, Plus, Trash2, Stethoscope } from "lucide-react";
 
@@ -18,6 +18,19 @@ export default function PrescriptionModal({ appointment, onClose, onSaved }) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        if (!appointment) return;
+
+        if (appointment.hasPrescription) {
+            loadPrescription();
+        } else {
+            setDiagnosis("");
+            setMedicines([emptyMed()]);
+            setNotes("");
+            setAdvice("");
+        }
+    }, [appointment]);
+
     if (!appointment) return null;
 
     const updateMed = (i, field, val) => {
@@ -25,6 +38,37 @@ export default function PrescriptionModal({ appointment, onClose, onSaved }) {
     };
     const addMed = () => setMedicines(m => [...m, emptyMed()]);
     const removeMed = (i) => setMedicines(m => m.filter((_, idx) => idx !== i));
+
+    async function loadPrescription() {
+        try {
+            const res = await api.get(
+                `/prescriptions/appointment/${appointment.id}`
+            );
+
+            const data = res.data;
+
+            setDiagnosis(data.diagnosis || "");
+            setNotes(data.notes || "");
+            setAdvice(data.adviceOnFollowUp || "");
+
+            if (data.medicines && data.medicines.length > 0) {
+                setMedicines(
+                    data.medicines.map(x => ({
+                        name: x.name || "",
+                        dosage: x.dosage || "",
+                        frequency: x.frequency || "",
+                        duration: x.duration || "",
+                        instructions: x.instructions || ""
+                    }))
+                );
+            } else {
+                setMedicines([emptyMed()]);
+            }
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
 
     async function handleSave() {
         setError("");
@@ -59,7 +103,9 @@ export default function PrescriptionModal({ appointment, onClose, onSaved }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <Stethoscope size={20} color={T.green} />
                         <div>
-                            <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 800, fontSize: 19, margin: 0, color: T.ink }}>Write Prescription</h2>
+                            <h2 style={{ fontFamily: "Fraunces, serif", fontWeight: 800, fontSize: 19, margin: 0, color: T.ink }}>{appointment.hasPrescription
+                                ? "Edit Prescription"
+                                : "Write Prescription"}</h2>
                             <p style={{ fontSize: 12, color: T.muted, margin: "2px 0 0" }}>For {appointment.patientName}</p>
                         </div>
                     </div>
@@ -129,7 +175,11 @@ export default function PrescriptionModal({ appointment, onClose, onSaved }) {
                         Cancel
                     </button>
                     <button onClick={handleSave} disabled={saving} style={{ flex: 1, height: 46, borderRadius: 12, border: "none", background: T.green, color: T.white, fontWeight: 700, fontSize: 14, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? .7 : 1 }}>
-                        {saving ? "Saving…" : "Save Prescription"}
+                        {saving
+                            ? "Saving..."
+                            : appointment.hasPrescription
+                                ? "Update Prescription"
+                                : "Save Prescription"}
                     </button>
                 </div>
             </div>

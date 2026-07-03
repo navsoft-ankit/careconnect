@@ -13,12 +13,10 @@ namespace HEALTHCARE.Controllers;
 public class AdminSlotRequestController : ControllerBase
 {
     private readonly AppDbContext _context;
-
     public AdminSlotRequestController(AppDbContext context)
     {
         _context = context;
     }
-
     // ======================================
     // GET ALL SLOT REQUESTS
     // ======================================
@@ -89,31 +87,21 @@ public class AdminSlotRequestController : ControllerBase
         var availability = new DoctorAvailability
         {
             DoctorId = request.DoctorId,
-
             HospitalId = request.HospitalId,
             HospitalSessionId = request.HospitalSessionId,
-
             AvailableFrom = request.RequestedFrom,
             AvailableTo = request.RequestedTo,
-
             Place = request.Hospital!.Name,
-
             MaxPatients = request.MaxPatients,
-
             BookedCount = 0,
             IsBooked = false,
-
             Status = "Approved",
             IsApproved = true
         };
-
         _context.DoctorAvailabilities.Add(availability);
-
         request.Status = "Approved";
         request.AdminRemark = dto.AdminRemark;
-
         _context.SaveChanges();
-
         return Ok("Request approved.");
     }
 }

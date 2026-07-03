@@ -28,6 +28,18 @@ const STATUS_CFG = {
     CancelledByAdmin: { bg: "#FEE2E2", text: "#991B1B", border: "#FECACA" },
     Completed: { bg: "#DBEAFE", text: "#1E40AF", border: "#BFDBFE" },
 };
+const th = {
+    padding: "14px 20px",
+    textAlign: "left",
+    fontSize: 12,
+    color: T.muted,
+    background: T.cream,
+    fontWeight: 700,
+};
+
+const td = {
+    padding: "16px 20px",
+};
 
 function Badge({ status }) {
     const s = STATUS_CFG[status] || { bg: T.creamDark, text: T.muted, border: T.border };
@@ -191,7 +203,7 @@ export default function DoctorAppointments() {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <thead>
                             <tr style={{ background: T.cream }}>
-                                {["#", "Patient", "Email", "Appointment", "Status", "Actions"].map(h => (
+                                {["#", "Patient", "Email", "Appointment", "Status", "Prescription", "Actions"].map(h => (
                                     <th key={h} style={{ padding: "13px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: .6, whiteSpace: "nowrap" }}>{h}</th>
                                 ))}
                             </tr>
@@ -234,20 +246,42 @@ export default function DoctorAppointments() {
                                     </td>
                                     <td style={{ padding: "15px 20px" }}><Badge status={item.status} /></td>
                                     <td style={{ padding: "15px 20px" }}>
-                                        {item.status === "Pending" ? (
-                                            <div style={{ display: "flex", gap: 8 }}>
-                                                <ActionBtn label="Accept" bg={T.greenLight} fg={T.green} onClick={() => updateStatus(item.id, "Confirmed")} />
-                                                <ActionBtn label="Reject" bg="#FEE2E2" fg="#DC2626" onClick={() => updateStatus(item.id, "CancelledByAdmin")} />
-                                            </div>
-                                        ) : item.status === "Completed" ? (
+                                        {item.status === "Completed" ? (
                                             <ActionBtn
-                                                label={item.hasPrescription ? "Edit Prescription" : "Add Prescription"}
+                                                label={item.hasPrescription ? "Edit Prescription" : "Write Prescription"}
                                                 bg={item.hasPrescription ? "#DBEAFE" : T.greenLight}
                                                 fg={item.hasPrescription ? "#1E40AF" : T.green}
                                                 onClick={() => setRxAppointment(item)}
                                             />
                                         ) : (
-                                            <ActionBtn label={item.status === "Confirmed" ? "Confirmed" : "—"} disabled bg={T.creamDark} fg={T.muted} />
+                                            <span style={{ color: T.muted }}>—</span>
+                                        )}
+                                    </td>
+                                    <td style={{ padding: "15px 20px" }}>
+                                        {item.status === "Pending" ? (
+                                            <div style={{ display: "flex", gap: 8 }}>
+                                                <ActionBtn
+                                                    label="Accept"
+                                                    bg={T.greenLight}
+                                                    fg={T.green}
+                                                    onClick={() => updateStatus(item.id, "Confirmed")}
+                                                />
+                                                <ActionBtn
+                                                    label="Reject"
+                                                    bg="#FEE2E2"
+                                                    fg="#DC2626"
+                                                    onClick={() => updateStatus(item.id, "CancelledByAdmin")}
+                                                />
+                                            </div>
+                                        ) : item.status === "Confirmed" ? (
+                                            <ActionBtn
+                                                label="Complete"
+                                                bg={T.greenLight}
+                                                fg={T.green}
+                                                onClick={() => updateStatus(item.id, "Completed")}
+                                            />
+                                        ) : (
+                                            <span style={{ color: T.muted }}>—</span>
                                         )}
                                     </td>
                                 </tr>

@@ -427,7 +427,7 @@ export default function DoctorDashboard() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: T.cream }}>
-                    {["Patient", "Date", "Time", "Contact", "Status", "Actions"].map(h => (
+                    {["Patient", "Date", "Time", "Contact", "Status"].map(h => (
                       <th key={h} style={{ padding: "13px 20px", textAlign: h === "Actions" ? "center" : "left", fontSize: 12, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: .5, whiteSpace: "nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -435,7 +435,7 @@ export default function DoctorDashboard() {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", padding: "56px 0", color: T.muted }}>
+                      <td colSpan={5} style={{ textAlign: "center", padding: "56px 0", color: T.muted }}>
                         <ClipboardList size={44} style={{ opacity: .3, display: "block", margin: "0 auto 12px" }} />
                         No appointments found.
                       </td>
@@ -464,14 +464,7 @@ export default function DoctorDashboard() {
                         </div>
                       </td>
                       <td style={{ padding: "16px 20px" }}><Badge status={a.status} /></td>
-                      <td style={{ padding: "16px 20px" }}>
-                        <div style={{ display: "flex", justifyContent: "center", gap: 6 }}>
-                          <Btn icon={<Eye size={15} />} title="View" bg={T.creamDark} fg={T.ink} />
-                          <Btn icon={<Edit3 size={15} />} title="Patient" bg={T.greenLight} fg={T.green} onClick={() => navigate(`/doctor/profile?id=${a.patientId}`)} />
-                          {a.status !== "Completed" && <Btn icon={<CheckCircle2 size={15} />} title="Complete" bg="#DCFCE7" fg="#16A34A" onClick={() => updateStatus(a.id, "Completed")} />}
-                          {a.status !== "Cancelled" && <Btn icon={<XCircle size={15} />} title="Cancel" bg="#FEE2E2" fg="#DC2626" onClick={() => updateStatus(a.id, "Cancelled")} />}
-                        </div>
-                      </td>
+
                     </tr>
                   ))}
                 </tbody>
