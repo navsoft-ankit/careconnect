@@ -135,8 +135,9 @@ export default function DoctorDashboard() {
       const completed = apptData.filter(a => a.status === "Completed").length;
       const pending = apptData.filter(a => a.status === "Pending" || a.status === "Confirmed").length;
       const cancelled = apptData.filter(a => a.status === "Cancelled").length;
-      const todayAppts = apptData.filter(a => new Date(a.date).toDateString() === today).length;
-      const totalPatients = new Set(apptData.map(a => a.patientId || a.patientEmail)).size;
+const todayAppts = apptData.filter(
+  a => new Date(a.appointmentDate).toDateString() === today
+).length;      const totalPatients = new Set(apptData.map(a => a.patientId || a.patientEmail)).size;
       const earnings = apptData.filter(a => a.status === "Completed").reduce((s, a) => s + Number(a.amount || a.fee || 0), 0);
       setStats({ totalPatients, todayAppointments: todayAppts, completed, pending, cancelled, earnings });
     } catch (err) {
@@ -455,12 +456,12 @@ export default function DoctorDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.date}</td>
-                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.time}</td>
+                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.appointmentDate}</td>
+                      <td style={{ padding: "16px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>{a.appointmentTime}</td>
                       <td style={{ padding: "16px 20px" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.phone}</span></div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.email}</span></div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Phone size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.patientPhone}</span></div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Mail size={12} color={T.green} /><span style={{ fontSize: 12, color: T.ink }}>{a.patientEmail}</span></div>
                         </div>
                       </td>
                       <td style={{ padding: "16px 20px" }}><Badge status={a.status} /></td>
@@ -490,8 +491,8 @@ export default function DoctorDashboard() {
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 15, color: T.ink }}>{a.patientName}</div>
                       <div style={{ display: "flex", gap: 14, marginTop: 6 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Calendar size={12} />{a.date}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Clock3 size={12} />{a.time}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Calendar size={12} />{a.appointmentDate}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: T.muted }}><Clock3 size={12} />{a.appointmentTime}</span>
                       </div>
                     </div>
                     <Badge status={a.status} />

@@ -87,42 +87,64 @@ public class DoctorController : ControllerBase
         return Ok("Availability added successfully.");
     }
 
-    [HttpGet("availability")]
-    public IActionResult GetAvailability()
+   [HttpGet("availability")]
+public IActionResult GetAvailability()
+{
+    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+    var doctor = _context.Doctors.FirstOrDefault(x => x.UserId == userId);
+
+    if (doctor == null)
+        return NotFound();
+
+    var now = DateTime.Now;
+
+    // শুধুমাত্র যেসব slot শেষ হয়ে গেছে সেগুলো inactive করো
+    var expired = _context.DoctorAvailabilities
+        .Where(x =>
+            x.DoctorId == doctor.Id &&
+            x.IsActive &&
+            x.AvailableTo < now)
+        .ToList();
+
+    if (expired.Any())
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        foreach (var slot in expired)
+        {
+            slot.IsActive = false;
+        }
 
-        var doctor = _context.Doctors.FirstOrDefault(x => x.UserId == userId);
-
-        if (doctor == null)
-            return NotFound();
-
-        var data = _context.DoctorAvailabilities
-            .Include(x => x.Hospital)
-            .Include(x => x.HospitalSession)
-            .Where(x => x.DoctorId == doctor.Id)
-            .OrderBy(x => x.AvailableFrom)
-            .Select(x => new
-            {
-                x.Id,
-                x.HospitalId,
-                HospitalName = x.Hospital.Name,
-                x.HospitalSessionId,
-                Day = x.HospitalSession.Day,
-                SessionStart = x.HospitalSession.StartTime,
-                SessionEnd = x.HospitalSession.EndTime,
-                x.AvailableFrom,
-                x.AvailableTo,
-                x.Place,
-                x.MaxPatients,
-                x.BookedCount,
-                SeatsLeft = x.MaxPatients - x.BookedCount,
-                x.IsBooked
-            })
-            .ToList();
-
-        return Ok(data);
+        _context.SaveChanges();
     }
+
+    var data = _context.DoctorAvailabilities
+        .Include(x => x.Hospital)
+        .Include(x => x.HospitalSession)
+        .Where(x =>
+            x.DoctorId == doctor.Id &&
+            x.IsActive)
+        .OrderBy(x => x.AvailableFrom)
+        .Select(x => new
+        {
+            x.Id,
+            x.HospitalId,
+            HospitalName = x.Hospital.Name,
+            x.HospitalSessionId,
+            Day = x.HospitalSession.Day,
+            SessionStart = x.HospitalSession.StartTime,
+            SessionEnd = x.HospitalSession.EndTime,
+            x.AvailableFrom,
+            x.AvailableTo,
+            x.Place,
+            x.MaxPatients,
+            x.BookedCount,
+            SeatsLeft = x.MaxPatients - x.BookedCount,
+            x.IsBooked
+        })
+        .ToList();
+
+    return Ok(data);
+}
 
     [HttpPut("availability")]
     public IActionResult UpdateAvailability(UpdateAvailabilityDto dto)

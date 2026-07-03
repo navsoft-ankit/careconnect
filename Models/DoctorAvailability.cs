@@ -22,4 +22,5 @@ public class DoctorAvailability
     public bool IsBooked { get; set; } = false;
     public bool IsApproved { get; set; } = false;
     public string Status { get; set; } = "Pending";
+    public bool IsActive { get; set; } = true;
 }
