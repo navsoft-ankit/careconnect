@@ -10,10 +10,8 @@ namespace HEALTHCARE.Controllers;
 public class MapsController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
-
     // Replace with your Geoapify API key
     private const string ApiKey = "53ffb39383f246fb81815bbc16144727";
-
     public MapsController(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
@@ -24,9 +22,7 @@ public class MapsController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(q))
             return BadRequest();
-
         var client = _httpClientFactory.CreateClient();
-
         var url =
             $"https://api.geoapify.com/v1/geocode/autocomplete" +
             $"?text={Uri.EscapeDataString(q)}" +
@@ -34,7 +30,6 @@ public class MapsController : ControllerBase
             $"&apiKey={ApiKey}";
 
         var response = await client.GetAsync(url);
-
         if (!response.IsSuccessStatusCode)
         {
             var err = await response.Content.ReadAsStringAsync();
@@ -42,11 +37,8 @@ public class MapsController : ControllerBase
         }
 
         var json = await response.Content.ReadAsStringAsync();
-
         using var doc = JsonDocument.Parse(json);
-
         var result = new List<object>();
-
         foreach (var feature in doc.RootElement
                      .GetProperty("features")
                      .EnumerateArray())
@@ -54,20 +46,16 @@ public class MapsController : ControllerBase
             var coords = feature
                 .GetProperty("geometry")
                 .GetProperty("coordinates");
-
             result.Add(new
             {
                 display_name = feature
                     .GetProperty("properties")
                     .GetProperty("formatted")
                     .GetString(),
-
                 lat = coords[1].GetDouble(),
-
                 lon = coords[0].GetDouble()
             });
         }
-
         return Ok(result);
     }
 }

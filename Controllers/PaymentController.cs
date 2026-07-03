@@ -23,9 +23,7 @@ public class PaymentController : ControllerBase
     {
         var keyId = _config["Razorpay:KeyId"];
         var keySecret = _config["Razorpay:KeySecret"];
-
         var client = new RazorpayClient(keyId, keySecret);
-
         var options = new Dictionary<string, object>
         {
             { "amount", (int)(dto.Amount * 100) }, // rupees -> paise
@@ -49,10 +47,8 @@ public class PaymentController : ControllerBase
     public IActionResult VerifyPayment([FromBody] VerifyRazorpayPaymentDto dto)
     {
         var keySecret = _config["Razorpay:KeySecret"];
-
         var payload = $"{dto.razorpay_order_id}|{dto.razorpay_payment_id}";
         var generatedSignature = ComputeHmacSha256(payload, keySecret!);
-
         if (generatedSignature != dto.razorpay_signature)
             return BadRequest("Payment verification failed — signature mismatch");
 

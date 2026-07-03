@@ -12,30 +12,20 @@ namespace HEALTHCARE.Dtos
     public class CreatePrescriptionDto
     {
         public int AppointmentId { get; set; }
-
         public string Diagnosis { get; set; } = "";
-
         public List<MedicineItemDto> Medicines { get; set; } = new();
-
         public string? Notes { get; set; }
-
         public string? AdviceOnFollowUp { get; set; }
     }
 
     public class PrescriptionResponseDto
     {
         public int Id { get; set; }
-
         public int AppointmentId { get; set; }
-
         public string Diagnosis { get; set; } = "";
-
         public List<MedicineItemDto> Medicines { get; set; } = new();
-
         public string? Notes { get; set; }
-
         public string? AdviceOnFollowUp { get; set; }
-
         public DateTime CreatedAt { get; set; }
         public string PatientAddress { get; set; } = "";
 

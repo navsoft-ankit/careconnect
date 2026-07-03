@@ -13,7 +13,6 @@ namespace HEALTHCARE.Controllers;
 public class PatientController : ControllerBase
 {
     private readonly AppDbContext _context;
-
     public PatientController(AppDbContext context)
     {
         _context = context;
@@ -36,7 +35,6 @@ public class PatientController : ControllerBase
                 ImageUrl = d.ImageUrl
             })
             .ToList();
-
         return Ok(doctors);
     }
 
@@ -59,122 +57,99 @@ public class PatientController : ControllerBase
                 SeatsLeft = x.MaxPatients - x.BookedCount
             })
             .ToList();
-
         return Ok(slots);
     }
 
-[Authorize(Roles = "Patient")]
-[HttpPost("book")]
-public IActionResult BookAppointment(BookAppointmentDto dto)
-{
-    var userId = int.Parse(
-        User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-    var slot = _context.DoctorAvailabilities
-        .FirstOrDefault(x => x.Id == dto.DoctorAvailabilityId);
-
-    if (slot == null)
-        return NotFound("Slot not found");
-
-    if (slot.IsBooked || slot.BookedCount >= slot.MaxPatients)
-        return BadRequest("This slot is already fully booked.");
-
-    var doctor = _context.Doctors
-        .FirstOrDefault(x => x.Id == slot.DoctorId);
-
-    if (doctor == null)
-        return NotFound("Doctor not found.");
-
-    var user = _context.Users
-        .FirstOrDefault(x => x.Id == userId);
-
-    if (user == null)
-        return NotFound("User not found.");
-
-    // Original advance (50% of consultation fee)
-    decimal originalAdvance = Math.Round(doctor.Fee * 0.5m, 2);
-
-    // Amount patient actually needs to pay
-    decimal payableAdvance = originalAdvance;
-
-    // Wallet / Refund balance used
-    decimal walletUsed = 0;
-
-    if (dto.UseRefundBalance && user.RefundBalance > 0)
+    [Authorize(Roles = "Patient")]
+    [HttpPost("book")]
+    public IActionResult BookAppointment(BookAppointmentDto dto)
     {
-        walletUsed = Math.Min(user.RefundBalance, payableAdvance);
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-        payableAdvance -= walletUsed;
+        var slot = _context.DoctorAvailabilities
+            .FirstOrDefault(x => x.Id == dto.DoctorAvailabilityId);
 
-        user.RefundBalance -= walletUsed;
+        if (slot == null)
+            return NotFound("Slot not found");
+
+        if (slot.IsBooked || slot.BookedCount >= slot.MaxPatients)
+            return BadRequest("This slot is already fully booked.");
+
+        var doctor = _context.Doctors
+            .FirstOrDefault(x => x.Id == slot.DoctorId);
+
+        if (doctor == null)
+            return NotFound("Doctor not found.");
+
+        var user = _context.Users
+            .FirstOrDefault(x => x.Id == userId);
+
+        if (user == null)
+            return NotFound("User not found.");
+        // Original advance (50% of consultation fee)
+        decimal originalAdvance = Math.Round(doctor.Fee * 0.5m, 2);
+        // Amount patient actually needs to pay
+        decimal payableAdvance = originalAdvance;
+        // Wallet / Refund balance used
+        decimal walletUsed = 0;
+
+        if (dto.UseRefundBalance && user.RefundBalance > 0)
+        {
+            walletUsed = Math.Min(user.RefundBalance, payableAdvance);
+            payableAdvance -= walletUsed;
+            user.RefundBalance -= walletUsed;
+        }
+
+        // Increase booked count
+        slot.BookedCount++;
+
+        if (slot.BookedCount >= slot.MaxPatients)
+            slot.IsBooked = true;
+
+        var appointment = new Appointment
+        {
+            PatientId = userId,
+            DoctorId = slot.DoctorId,
+            DoctorAvailabilityId = slot.Id,
+            PatientName = dto.PatientName,
+            PatientPhone = dto.PatientPhone,
+            PatientEmail = dto.PatientEmail,
+            PatientDob = dto.PatientDob,
+            Gender = dto.Gender,
+            BloodGroup = dto.BloodGroup,
+            Address = dto.Address,
+            Relationship = dto.Relationship,
+            BookedAt = DateTime.UtcNow,
+            Status = "Confirmed",
+            PaymentStatus = dto.PaymentMethod == "Online"
+                ? (payableAdvance > 0 ? "Paid" : "Wallet")
+                : "Cash",
+            AdvanceAmount = originalAdvance,
+            WalletUsed = walletUsed,
+            RazorpayPaymentId = dto.PaymentMethod == "Online"
+                ? (payableAdvance > 0
+                    ? dto.RazorpayPaymentId
+                    : "WALLET_PAYMENT")
+                : null
+        };
+
+        _context.Appointments.Add(appointment);
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            AppointmentId = appointment.Id,
+            ConsultationFee = doctor.Fee,
+            OriginalAdvance = originalAdvance,
+            WalletUsed = walletUsed,
+            PayNow = payableAdvance,
+            WalletBalance = user.RefundBalance,
+            SeatsLeft = slot.MaxPatients - slot.BookedCount,
+            PaymentStatus = appointment.PaymentStatus,
+            Message = "Appointment booked successfully."
+        });
     }
-
-    // Increase booked count
-    slot.BookedCount++;
-
-    if (slot.BookedCount >= slot.MaxPatients)
-        slot.IsBooked = true;
-
-var appointment = new Appointment
-{
-    PatientId = userId,
-    DoctorId = slot.DoctorId,
-    DoctorAvailabilityId = slot.Id,
-
-    // Snapshot of patient details at booking time
-    PatientName = dto.PatientName,
-    PatientPhone = dto.PatientPhone,
-    PatientEmail = dto.PatientEmail,
-    PatientDob = dto.PatientDob,
-    Gender = dto.Gender,
-    BloodGroup = dto.BloodGroup,
-    Address = dto.Address,
-    Relationship = dto.Relationship,
-
-    BookedAt = DateTime.UtcNow,
-
-    Status = "Confirmed",
-
-    PaymentStatus = dto.PaymentMethod == "Online"
-        ? (payableAdvance > 0 ? "Paid" : "Wallet")
-        : "Cash",
-
-    AdvanceAmount = originalAdvance,
-
-    WalletUsed = walletUsed,
-
-    RazorpayPaymentId = dto.PaymentMethod == "Online"
-        ? (payableAdvance > 0
-            ? dto.RazorpayPaymentId
-            : "WALLET_PAYMENT")
-        : null
-};
-
-    _context.Appointments.Add(appointment);
-
-    _context.SaveChanges();
-
-    return Ok(new
-    {
-        AppointmentId = appointment.Id,
-
-        ConsultationFee = doctor.Fee,
-
-        OriginalAdvance = originalAdvance,
-
-        WalletUsed = walletUsed,
-
-        PayNow = payableAdvance,
-
-        WalletBalance = user.RefundBalance,
-
-        SeatsLeft = slot.MaxPatients - slot.BookedCount,
-
-        PaymentStatus = appointment.PaymentStatus,
-
-        Message = "Appointment booked successfully."
-    });
-}
 
     [Authorize(Roles = "Patient")]
     [HttpGet("appointments")]
@@ -189,11 +164,8 @@ var appointment = new Appointment
             join d in _context.Doctors on a.DoctorId equals d.Id
             join u in _context.Users on d.UserId equals u.Id
             join s in _context.DoctorAvailabilities on a.DoctorAvailabilityId equals s.Id
-
             where a.PatientId == userId
-
             orderby a.BookedAt descending
-
             select new
             {
                 a.Id,
@@ -202,15 +174,12 @@ var appointment = new Appointment
                 DoctorName = u.FullName,
                 Specialization = d.Specialization,
                 Hospital = d.HospitalName,
-
                 AppointmentDate = s.AvailableFrom.Date,
                 AppointmentTime = s.AvailableFrom,
                 PlaceToVisit = s.Place,
-
                 a.Status,
                 a.PaymentStatus,
                 a.AdvanceAmount,
-
                 SlotId = s.Id,
             }
 
@@ -231,24 +200,17 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         if (string.IsNullOrWhiteSpace(dto.DeliveryAddress))
             return BadRequest("Delivery address is required");
-
         var product = _context.Products
             .FirstOrDefault(x => x.Id == dto.ProductId);
-
         if (product == null)
             return NotFound("Product not found");
-
         if (product.Stock < dto.Quantity)
             return BadRequest("Insufficient stock");
-
         var paymentMode = dto.PaymentMode == "Online" ? "Online" : "COD";
-
         if (paymentMode == "Online" && string.IsNullOrWhiteSpace(dto.RazorpayPaymentId))
             return BadRequest("Payment verification required for online payment");
-
         var total = product.Price * dto.Quantity;
 
         var order = new Order
@@ -275,9 +237,7 @@ var appointment = new Appointment
         };
 
         _context.OrderItems.Add(orderItem);
-
         product.Stock -= dto.Quantity;
-
         _context.SaveChanges();
 
         return Ok(new
@@ -346,26 +306,21 @@ var appointment = new Appointment
                  a.DriverName,
                  a.VehicleNumber,
                  a.Type,
-
                  IsAvailable = a.IsAvailable,
-
                  MyRide =
                      activeRequest != null &&
                      activeRequest.UserId == userId,
-
                  RequestId =
                      activeRequest != null &&
                      activeRequest.UserId == userId
                          ? activeRequest.Id
                          : (int?)null,
-
                  RideStatus =
                      activeRequest != null &&
                      activeRequest.UserId == userId
                          ? activeRequest.Status
                          : null
              }).ToList();
-
         return Ok(ambulances);
     }
     private static readonly Dictionary<string, string[]> CityKeywords = new()
@@ -375,7 +330,6 @@ var appointment = new Appointment
         ["Salt Lake"] = new[] { "salt lake", "sector v", "bidhannagar" },
         ["New Town"] = new[] { "new town", "rajarhat" },
     };
-
     private static readonly Dictionary<string, (double MinLat, double MaxLat, double MinLng, double MaxLng)> CityBounds = new()
     {
         ["Kolkata"] = (22.45, 22.62, 88.30, 88.42),
@@ -383,14 +337,11 @@ var appointment = new Appointment
         ["Salt Lake"] = (22.56, 22.61, 88.40, 88.45),
         ["New Town"] = (22.57, 22.65, 88.45, 88.52),
     };
-
     private static string MatchCityFromHospitalName(string hospitalName)
     {
         if (string.IsNullOrWhiteSpace(hospitalName))
             return "Other";
-
         var lower = hospitalName.ToLowerInvariant();
-
         foreach (var (city, keywords) in CityKeywords)
         {
             if (keywords.Any(k => lower.Contains(k)))
@@ -418,9 +369,7 @@ var appointment = new Appointment
         var doctors = _context.Doctors.ToList();
         var ambulances = _context.Ambulances.Where(a => a.IsAvailable).ToList();
         var productCount = _context.Products.Count();
-
         var cityNames = CityKeywords.Keys.ToList();
-
         var coverage = cityNames.Select(city => new
         {
             City = city,
@@ -441,7 +390,6 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var ambulance = _context.Ambulances
             .FirstOrDefault(x => x.Id == dto.AmbulanceId);
 
@@ -454,7 +402,6 @@ var appointment = new Appointment
         // Server-side recalculation — never trust client-sent fare
         double distanceKm = HaversineKm(dto.PickupLat, dto.PickupLng, dto.DestinationLat, dto.DestinationLng);
         decimal fare = Math.Round(RatePerKm(dto.VehicleType) * (decimal)distanceKm, 2);
-
         var request = new AmbulanceRequest
         {
             UserId = userId,
@@ -487,7 +434,6 @@ var appointment = new Appointment
     }
 
     // Add these two private static helpers anywhere in the PatientController class:
-
     private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
     {
         double ToRad(double deg) => deg * Math.PI / 180.0;
@@ -516,7 +462,6 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var appointment = _context.Appointments
             .FirstOrDefault(x => x.Id == id && x.PatientId == userId);
 
@@ -528,19 +473,14 @@ var appointment = new Appointment
 
         if (slot == null)
             return BadRequest("Appointment slot not found");
-
         var user = _context.Users.First(x => x.Id == userId);
-
         decimal refund = 0;
-
         var hoursLeft = (slot.AvailableFrom - DateTime.UtcNow).TotalHours;
-
         if (hoursLeft >= 1)
         {
             refund = Math.Round(appointment.AdvanceAmount * 0.5m, 2);
             user.RefundBalance += refund;
         }
-
         appointment.Status = "CancelledByUser";
 
         // Free up exactly one seat, not the whole slot
@@ -564,7 +504,6 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var request = _context.AmbulanceRequests
             .FirstOrDefault(x => x.Id == id && x.UserId == userId);
 
@@ -610,7 +549,6 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var user = _context.Users
             .FirstOrDefault(x => x.Id == userId);
 
@@ -640,7 +578,6 @@ var appointment = new Appointment
     {
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var user = _context.Users
             .FirstOrDefault(x => x.Id == userId);
 
@@ -658,7 +595,6 @@ var appointment = new Appointment
         user.Country = dto.Country;
         user.PinCode = dto.PinCode;
         user.AvatarUrl = dto.AvatarUrl;
-
         _context.SaveChanges();
 
         return Ok(new
@@ -683,10 +619,8 @@ var appointment = new Appointment
     {
         if (file == null || file.Length == 0)
             return BadRequest("No file selected.");
-
         var userId = int.Parse(
             User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
         var user = _context.Users
             .FirstOrDefault(x => x.Id == userId);
 
@@ -700,19 +634,15 @@ var appointment = new Appointment
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
-
         var fileName = Guid.NewGuid().ToString() +
                        Path.GetExtension(file.FileName);
-
         var path = Path.Combine(folder, fileName);
-
         using (var stream = new FileStream(path, FileMode.Create))
         {
             await file.CopyToAsync(stream);
         }
 
         user.AvatarUrl = "/avatars/" + fileName;
-
         _context.SaveChanges();
 
         return Ok(new

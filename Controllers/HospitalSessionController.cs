@@ -13,7 +13,6 @@ namespace HEALTHCARE.Controllers;
 public class HospitalSessionController : ControllerBase
 {
     private readonly AppDbContext _context;
-
     public HospitalSessionController(AppDbContext context)
     {
         _context = context;
@@ -41,7 +40,6 @@ public class HospitalSessionController : ControllerBase
 
         var hospital = _context.Hospitals
             .FirstOrDefault(x => x.Id == dto.HospitalId);
-
         if (hospital == null)
             return NotFound("Hospital not found");
 
@@ -74,27 +72,23 @@ public class HospitalSessionController : ControllerBase
         var data = _context.HospitalSessions
             .Include(x => x.Hospital)
             .OrderByDescending(x => x.Id)   // Latest first
-.Select(x => new
-{
-    x.Id,
-    HospitalId = x.HospitalId,
-    HospitalName = x.Hospital.Name,
+            .Select(x => new
+            {
+                x.Id,
+                HospitalId = x.HospitalId,
+                HospitalName = x.Hospital.Name,
+                x.Day,
+                x.Date,
+                x.StartTime,
+                x.EndTime,
 
-    x.Day,
-    x.Date,
+                x.PlaceToVisit,
 
-    x.StartTime,
-    x.EndTime,
-
-    x.PlaceToVisit,
-
-    x.IsActive
-})
+                x.IsActive
+            })
             .ToList();
-
         return Ok(data);
     }
-
     // =========================
     // UPDATE
     // =========================
@@ -167,9 +161,7 @@ public class HospitalSessionController : ControllerBase
             return NotFound();
 
         session.IsActive = !session.IsActive;
-
         _context.SaveChanges();
-
         return Ok(new
         {
             session.IsActive

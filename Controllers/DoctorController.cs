@@ -14,14 +14,12 @@ namespace HEALTHCARE.Controllers;
 public class DoctorController : ControllerBase
 {
     private readonly AppDbContext _context;
-
     public DoctorController(AppDbContext context)
     {
         _context = context;
     }
 
     // Replace these three methods in your existing DoctorController.cs
-
     [HttpPost("availability")]
     public IActionResult AddAvailability(CreateAvailabilityDto dto)
     {
@@ -107,31 +105,18 @@ public class DoctorController : ControllerBase
             .Select(x => new
             {
                 x.Id,
-
                 x.HospitalId,
-
                 HospitalName = x.Hospital.Name,
-
                 x.HospitalSessionId,
-
                 Day = x.HospitalSession.Day,
-
                 SessionStart = x.HospitalSession.StartTime,
-
                 SessionEnd = x.HospitalSession.EndTime,
-
                 x.AvailableFrom,
-
                 x.AvailableTo,
-
                 x.Place,
-
                 x.MaxPatients,
-
                 x.BookedCount,
-
                 SeatsLeft = x.MaxPatients - x.BookedCount,
-
                 x.IsBooked
             })
             .ToList();
@@ -192,47 +177,35 @@ public class DoctorController : ControllerBase
         var count = _context.Appointments.Count(a => a.DoctorId == doctor.Id);
 
         var appointments = (
-from a in _context.Appointments
-join d in _context.DoctorAvailabilities
-    on a.DoctorAvailabilityId equals d.Id
-select new
-{
-    a.Id,
-
-    PatientName = !string.IsNullOrWhiteSpace(a.PatientName)
-        ? a.PatientName
-        : a.Patient.FullName,
-
-    PatientEmail = !string.IsNullOrWhiteSpace(a.PatientEmail)
-        ? a.PatientEmail
-        : a.Patient.Email,
-
-    PatientPhone = a.PatientPhone,
-
-    PatientDob = a.PatientDob,
-
-    PatientAddress = a.Address,
-
-    Status = a.Status,
-
-    AppointmentDate = d.AvailableFrom.ToString("dd MMM yyyy"),
-
-    AppointmentTime = d.AvailableFrom.ToString("hh:mm tt"),
-
-    Place = d.Place,
-
-    BookedAt = a.BookedAt,
-
-    HasPrescription = _context.Prescriptions
-        .Any(p => p.AppointmentId == a.Id)
-}
+        from a in _context.Appointments
+        join d in _context.DoctorAvailabilities
+            on a.DoctorAvailabilityId equals d.Id
+        select new
+        {
+            a.Id,
+            PatientName = !string.IsNullOrWhiteSpace(a.PatientName)
+                ? a.PatientName
+                : a.Patient.FullName,
+            PatientEmail = !string.IsNullOrWhiteSpace(a.PatientEmail)
+                ? a.PatientEmail
+                : a.Patient.Email,
+            PatientPhone = a.PatientPhone,
+            PatientDob = a.PatientDob,
+            PatientAddress = a.Address,
+            Status = a.Status,
+            AppointmentDate = d.AvailableFrom.ToString("dd MMM yyyy"),
+            AppointmentTime = d.AvailableFrom.ToString("hh:mm tt"),
+            Place = d.Place,
+            BookedAt = a.BookedAt,
+            HasPrescription = _context.Prescriptions
+                .Any(p => p.AppointmentId == a.Id)
+        }
         )
         .Where(x => x.Status != null)
         .Where(x => _context.Appointments
         .Any(a => a.Id == x.Id && a.DoctorId == doctor.Id))
         .OrderByDescending(x => x.BookedAt)
         .ToList();
-
         return Ok(appointments);
     }
 
@@ -246,7 +219,6 @@ select new
             return NotFound();
 
         appointment.Status = dto.Status;
-
         _context.SaveChanges();
 
         return Ok("Status updated");
@@ -260,22 +232,21 @@ select new
 
         var doctor = _context.Doctors
             .Where(d => d.UserId == userId)
-.Select(d => new
-{
-    d.Id,
-    d.UserId,
-
-    Name = d.User.FullName,
-    Email = d.User.Email,
-    Phone = d.Phone,
-    d.Specialization,
-    d.HospitalName,
-    Qualification = d.Qualification,
-    Experience = d.Experience,
-    d.Fee,
-    d.About,
-    ImageUrl = d.ImageUrl
-})
+            .Select(d => new
+            {
+                d.Id,
+                d.UserId,
+                Name = d.User.FullName,
+                Email = d.User.Email,
+                Phone = d.Phone,
+                d.Specialization,
+                d.HospitalName,
+                Qualification = d.Qualification,
+                Experience = d.Experience,
+                d.Fee,
+                d.About,
+                ImageUrl = d.ImageUrl
+            })
             .FirstOrDefault();
 
         if (doctor == null)
@@ -333,7 +304,6 @@ select new
             return BadRequest("Booked slot cannot be deleted.");
 
         _context.DoctorAvailabilities.Remove(availability);
-
         _context.SaveChanges();
 
         return Ok("Deleted successfully");
@@ -359,7 +329,6 @@ select new
 
         appUser.FullName = dto.Name;
         appUser.Email = dto.Email;
-
         doctor.Specialization = dto.Specialization;
         doctor.HospitalName = dto.HospitalName;
         doctor.Fee = dto.Fee;
@@ -408,7 +377,6 @@ select new
         }
 
         doctor.ImageUrl = "/doctor-images/" + fileName;
-
         _context.SaveChanges();
 
         return Ok(new

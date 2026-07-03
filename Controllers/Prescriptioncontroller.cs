@@ -98,11 +98,9 @@ namespace HEALTHCARE.Controllers
                     AdviceOnFollowUp = dto.AdviceOnFollowUp
                 });
             }
-
             try
             {
                 await _db.SaveChangesAsync();
-
                 return Ok(new
                 {
                     message = "Prescription saved successfully."
@@ -124,9 +122,7 @@ namespace HEALTHCARE.Controllers
         {
             var rx = await BuildResponseDto(appointmentId);
             if (rx == null) return NotFound(new { message = "No prescription found for this appointment." });
-
             if (!await UserCanAccess(appointmentId)) return Forbid();
-
             return Ok(rx);
         }
 
@@ -136,13 +132,10 @@ namespace HEALTHCARE.Controllers
         public async Task<IActionResult> DownloadPdf(int appointmentId)
         {
             if (!await UserCanAccess(appointmentId)) return Forbid();
-
             var rx = await BuildResponseDto(appointmentId);
             if (rx == null) return NotFound(new { message = "No prescription found for this appointment." });
-
             var pdfBytes = _pdfService.Generate(rx);
             var fileName = $"CareConnect_Prescription_{rx.PatientName.Replace(" ", "_")}_{rx.AppointmentDate:yyyyMMdd}.pdf";
-
             return File(pdfBytes, "application/pdf", fileName);
         }
 
@@ -151,11 +144,9 @@ namespace HEALTHCARE.Controllers
         {
             var appointment = await _db.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentId);
             if (appointment == null) return false;
-
             var userId = CurrentUserId();
             var isPatient = User.IsInRole("Patient") && appointment.PatientId == userId;
             var isAdmin = User.IsInRole("Admin");
-
             var isDoctor = false;
             if (User.IsInRole("Doctor"))
             {
@@ -171,14 +162,12 @@ namespace HEALTHCARE.Controllers
             var rx = await _db.Prescriptions
                 .FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
             if (rx == null) return null;
-
             var appointment = await _db.Appointments
                 .Include(a => a.Doctor).ThenInclude(d => d.User)
                 .Include(a => a.Patient)
                 .Include(a => a.DoctorAvailability)
                 .FirstOrDefaultAsync(a => a.Id == appointmentId);
             if (appointment == null) return null;
-
             var medicines = JsonSerializer.Deserialize<List<MedicineItemDto>>(rx.MedicinesJson) ?? new();
             var slot = appointment.DoctorAvailability?.AvailableFrom ?? appointment.BookedAt;
 
@@ -186,7 +175,6 @@ namespace HEALTHCARE.Controllers
             {
                 Id = rx.Id,
                 AppointmentId = rx.AppointmentId,
-
                 Diagnosis = rx.Diagnosis,
                 Medicines = medicines,
                 Notes = rx.Notes,
