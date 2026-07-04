@@ -5,6 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Chatbot from "./Chatbot";
 import { Stethoscope, Pill, Ambulance, CalendarCheck } from "lucide-react";
+import {
+  HeartPulse,
+  Brain,
+  Bone,
+  Eye,
+  Baby,
+} from "lucide-react";
 
 // Stock fallback photos — keyed by doctor.id so the same doctor always
 // gets the same photo, regardless of list order/filtering.
@@ -396,23 +403,57 @@ export default function Dashboard() {
 
                 {/* SPECIALITIES */}
                 <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
-                    <h2 className="text-4xl font-normal mb-10">Popular specialities</h2>
+                    <h2 className="text-4xl font-normal mb-10">
+                        Popular Specialities
+                    </h2>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 font-[system-ui,sans-serif]">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
                         {[
-                            "❤️ Cardiology",
-                            "🧠 Neurology",
-                            "🦴 Orthopedic",
-                            "👁 Ophthalmology",
-                            "🦷 Dental",
-                            "👶 Pediatrics",
-                        ].map((item) => (
-                            <div
-                                key={item}
-                                className="bg-white border border-[#E4DFD3] rounded-2xl p-6 text-center hover:bg-[#16332B] hover:text-white hover:border-[#16332B] transition cursor-pointer"
+  {
+    title: "Cardiology",
+    Icon: HeartPulse,
+    color: "text-red-500",
+  },
+  {
+    title: "Neurology",
+    Icon: Brain,
+    color: "text-pink-500",
+  },
+  {
+    title: "Orthopedic",
+    Icon: Bone,
+    color: "text-amber-500",
+  },
+  {
+    title: "Ophthalmology",
+    Icon: Eye,
+    color: "text-blue-500",
+  },
+  {
+    title: "General Medicine",
+    Icon: Stethoscope,
+    color: "text-green-600",
+  },
+  {
+    title: "Pediatrics",
+    Icon: Baby,
+    color: "text-yellow-500",
+  },
+].map((item) => (
+                            <button
+                                key={item.title}
+                                className="flex items-center justify-center gap-2 bg-white border border-[#E4DFD3] rounded-2xl py-6 px-5 hover:shadow-md hover:border-[#16332B] transition-all"
                             >
-                                {item}
-                            </div>
+                                <item.Icon
+                                    size={20}
+                                    className={item.color}
+                                    strokeWidth={2.2}
+                                />
+
+                                <span className="text-[17px] font-medium text-[#16332B]">
+                                    {item.title}
+                                </span>
+                            </button>
                         ))}
                     </div>
                 </section>

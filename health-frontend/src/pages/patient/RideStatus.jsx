@@ -43,47 +43,53 @@ function formatExpiry(value) {
 /* ─── Skeleton ────────────────────────────────── */
 function LoadingSkeleton() {
     return (
-        <div style={{ minHeight: "100vh", 
-                      background: T.cream, 
-                      padding: "36px 20px" 
-                    }}>
+        <div style={{
+            minHeight: "100vh",
+            background: T.cream,
+            padding: "36px 20px"
+        }}>
 
             <style>
                 {`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}
             </style>
 
-            <div style={{ maxWidth: 560, 
-                          margin: "0 auto" 
-                        }}>
+            <div style={{
+                maxWidth: 560,
+                margin: "0 auto"
+            }}>
 
-                <div style={{ height: 18, 
-                              width: 80, 
-                              background: T.creamDark, 
-                              borderRadius: 8, 
-                              marginBottom: 24, 
-                              animation: "pulse 1.5s infinite" 
-                            }} />
+                <div style={{
+                    height: 18,
+                    width: 80,
+                    background: T.creamDark,
+                    borderRadius: 8,
+                    marginBottom: 24,
+                    animation: "pulse 1.5s infinite"
+                }} />
 
-                <div style={{ background: T.white, 
-                              borderRadius: 24, 
-                              border: `1px solid ${T.border}`,
-                              overflow: "hidden" 
-                            }}>
-                    <div style={{ height: 180, 
-                                  background: T.creamDark, 
-                                  animation: "pulse 1.5s infinite" 
-                                }} />
+                <div style={{
+                    background: T.white,
+                    borderRadius: 24,
+                    border: `1px solid ${T.border}`,
+                    overflow: "hidden"
+                }}>
+                    <div style={{
+                        height: 180,
+                        background: T.creamDark,
+                        animation: "pulse 1.5s infinite"
+                    }} />
 
                     <div style={{ padding: 28 }}>
                         {[...Array(4)].map((_, i) => (
-                            <div key={i} 
-                                style={{ height: 14, 
-                                         background: T.creamDark, 
-                                         borderRadius: 6, 
-                                         marginBottom: 16, 
-                                         width: `${70 - i * 8}%`, 
-                                         animation: "pulse 1.5s infinite" 
-                                       }} />
+                            <div key={i}
+                                style={{
+                                    height: 14,
+                                    background: T.creamDark,
+                                    borderRadius: 6,
+                                    marginBottom: 16,
+                                    width: `${70 - i * 8}%`,
+                                    animation: "pulse 1.5s infinite"
+                                }} />
                         ))}
                     </div>
                 </div>
@@ -127,63 +133,65 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
 
     return (
         <div style={{
-            position: "fixed", 
-            inset: 0, 
-            zIndex: 100, 
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
             background: "rgba(0,0,0,.5)",
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             padding: 16,
         }}>
             <div style={{
-                background: T.white, 
-                borderRadius: 24, 
-                width: "100%", 
+                background: T.white,
+                borderRadius: 24,
+                width: "100%",
                 maxWidth: 420,
-                boxShadow: "0 24px 70px rgba(0,0,0,.25)", 
+                boxShadow: "0 24px 70px rgba(0,0,0,.25)",
                 overflow: "hidden",
                 fontFamily: "Inter, sans-serif",
             }}>
                 {stage === "form" && (
                     <>
                         <div style={{
-                            background: T.greenDeep, 
-                            padding: "24px 28px", 
+                            background: T.greenDeep,
+                            padding: "24px 28px",
                             display: "flex",
-                            alignItems: "center", 
+                            alignItems: "center",
                             justifyContent: "space-between",
                         }}>
                             <div>
-                                <p style={{ color: "#BFD3C6", 
-                                            fontSize: 12, 
-                                            fontWeight: 600, 
-                                            margin: 0, 
-                                            letterSpacing: .4 
-                                          }}>
+                                <p style={{
+                                    color: "#BFD3C6",
+                                    fontSize: 12,
+                                    fontWeight: 600,
+                                    margin: 0,
+                                    letterSpacing: .4
+                                }}>
                                     CareConnect Secure Pay
                                 </p>
-                                <h2 style={{ color: T.white, 
-                                             fontFamily: "Fraunces, Georgia, serif", 
-                                             fontWeight: 700, 
-                                             fontSize: 24, 
-                                             margin: "4px 0 0" 
-                                          }}>
+                                <h2 style={{
+                                    color: T.white,
+                                    fontFamily: "Fraunces, Georgia, serif",
+                                    fontWeight: 700,
+                                    fontSize: 24,
+                                    margin: "4px 0 0"
+                                }}>
                                     ₹{amount}
                                 </h2>
                             </div>
-                            <button onClick={onClose} 
+                            <button onClick={onClose}
                                 style={{
-                                    border: "none", 
-                                    background: "rgba(255,255,255,.15)", 
-                                    width: 32, 
+                                    border: "none",
+                                    background: "rgba(255,255,255,.15)",
+                                    width: 32,
                                     height: 32,
-                                    borderRadius: 10, 
-                                    cursor: "pointer", 
-                                    display: "flex", 
-                                    alignItems: "center", 
+                                    borderRadius: 10,
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
                                     justifyContent: "center",
-                            }}>
+                                }}>
                                 <X size={16} color={T.white} />
                             </button>
                         </div>
@@ -191,12 +199,12 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                         <form onSubmit={handlePay} style={{ padding: "24px 28px" }}>
                             {error && (
                                 <div style={{
-                                    background: "#FEF2F2", 
-                                    border: "1px solid #FCA5A5", 
+                                    background: "#FEF2F2",
+                                    border: "1px solid #FCA5A5",
                                     color: "#DC2626",
-                                    borderRadius: 10, 
-                                    padding: "10px 14px", 
-                                    fontSize: 13, 
+                                    borderRadius: 10,
+                                    padding: "10px 14px",
+                                    fontSize: 13,
                                     marginBottom: 16,
                                 }}>
                                     {error}
@@ -205,17 +213,20 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
 
                             <label style={labelStyle}>Card Number</label>
                             <div style={{ position: "relative", marginBottom: 14 }}>
-                                <CreditCard size={16} 
-                                    style={{ position: "absolute", 
-                                             left: 12, 
-                                             top: "50%", 
-                                             transform: "translateY(-50%)", 
-                                             color: T.muted 
-                                           }} />
+                                <CreditCard size={16}
+                                    style={{
+                                        position: "absolute",
+                                        left: 12,
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        color: T.muted
+                                    }} />
                                 <input
                                     value={card.number}
-                                    onChange={e => setCard({ ...card, 
-                                        number: formatCardNumber(e.target.value) })}
+                                    onChange={e => setCard({
+                                        ...card,
+                                        number: formatCardNumber(e.target.value)
+                                    })}
                                     placeholder="1234 5678 9012 3456"
                                     style={{ ...inputStyle, paddingLeft: 38 }}
                                     inputMode="numeric"
@@ -225,8 +236,10 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                             <label style={labelStyle}>Name on Card</label>
                             <input
                                 value={card.name}
-                                onChange={e => setCard({ ...card, 
-                                    name: e.target.value })}
+                                onChange={e => setCard({
+                                    ...card,
+                                    name: e.target.value
+                                })}
                                 placeholder="As shown on card"
                                 style={{ ...inputStyle, marginBottom: 14 }}
                             />
@@ -236,8 +249,10 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                                     <label style={labelStyle}>Expiry</label>
                                     <input
                                         value={card.expiry}
-                                        onChange={e => setCard({ ...card, 
-                                            expiry: formatExpiry(e.target.value) })}
+                                        onChange={e => setCard({
+                                            ...card,
+                                            expiry: formatExpiry(e.target.value)
+                                        })}
                                         placeholder="MM/YY"
                                         style={inputStyle}
                                         inputMode="numeric"
@@ -247,9 +262,11 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                                     <label style={labelStyle}>CVV</label>
                                     <input
                                         value={card.cvv}
-                                        onChange={e => 
-                                            setCard({ ...card, 
-                                                cvv: e.target.value.replace(/\D/g, "").slice(0, 3) })}
+                                        onChange={e =>
+                                            setCard({
+                                                ...card,
+                                                cvv: e.target.value.replace(/\D/g, "").slice(0, 3)
+                                            })}
                                         placeholder="123"
                                         style={inputStyle}
                                         inputMode="numeric"
@@ -258,32 +275,34 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                                 </div>
                             </div>
 
-                            <button type="submit" 
+                            <button type="submit"
                                 style={{
-                                    width: "100%", 
-                                    marginTop: 22, 
-                                    padding: "13px 0", 
+                                    width: "100%",
+                                    marginTop: 22,
+                                    padding: "13px 0",
                                     borderRadius: 12,
-                                    border: "none", 
-                                    background: T.terra, 
-                                    color: T.white, 
+                                    border: "none",
+                                    background: T.terra,
+                                    color: T.white,
                                     fontWeight: 700,
-                                    fontSize: 15, 
+                                    fontSize: 15,
                                     cursor: "pointer",
-                            }}>
+                                }}>
                                 Pay ₹{amount}
                             </button>
 
-                            <div style={{ display: "flex", 
-                                          alignItems: "center", 
-                                          justifyContent: "center", 
-                                          gap: 6, 
-                                          marginTop: 14 
-                                        }}>
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 6,
+                                marginTop: 14
+                            }}>
                                 <Lock size={12} color={T.muted} />
-                                <span style={{ fontSize: 11, 
-                                               color: T.muted 
-                                            }}>Secured, encrypted test transaction
+                                <span style={{
+                                    fontSize: 11,
+                                    color: T.muted
+                                }}>Secured, encrypted test transaction
                                 </span>
                             </div>
                         </form>
@@ -291,58 +310,65 @@ function PaymentModal({ open, amount, onClose, onSuccess }) {
                 )}
 
                 {stage === "processing" && (
-                    <div style={{ padding: "60px 28px", 
-                                  textAlign: "center" 
-                                }}>
+                    <div style={{
+                        padding: "60px 28px",
+                        textAlign: "center"
+                    }}>
 
-                        <Loader2 size={44} 
+                        <Loader2 size={44}
                             color={T.green} style={{ animation: "spin 1s linear infinite" }} />
 
-                        <h3 style={{ fontFamily: "Fraunces, Georgia, serif", 
-                                     fontWeight: 700, 
-                                     fontSize: 18, 
-                                     color: T.ink, 
-                                     margin: "20px 0 6px" 
-                                   }}>
+                        <h3 style={{
+                            fontFamily: "Fraunces, Georgia, serif",
+                            fontWeight: 700,
+                            fontSize: 18,
+                            color: T.ink,
+                            margin: "20px 0 6px"
+                        }}>
                             Processing Payment
                         </h3>
-                        <p style={{ fontSize: 13, 
-                                    color: T.muted, margin: 0 
-                                }}>Please don't close this window…
+                        <p style={{
+                            fontSize: 13,
+                            color: T.muted, margin: 0
+                        }}>Please don't close this window…
                         </p>
                     </div>
                 )}
 
                 {stage === "success" && (
-                    <div style={{ padding: "50px 28px", 
-                                  textAlign: "center" 
-                                }}>
+                    <div style={{
+                        padding: "50px 28px",
+                        textAlign: "center"
+                    }}>
 
                         <div style={{
-                            width: 72, 
-                            height: 72, 
-                            borderRadius: "50%", 
+                            width: 72,
+                            height: 72,
+                            borderRadius: "50%",
                             background: T.greenLight,
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center", 
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             margin: "0 auto",
                         }}>
 
                             <CheckCircle2 size={38} color={T.green} />
                         </div>
-                        <h3 style={{ fontFamily: "Fraunces, Georgia, serif", 
-                                     fontWeight: 700, 
-                                     fontSize: 20, 
-                                     color: T.ink, 
-                                     margin: "20px 0 6px" 
-                                    }}>
+                        <h3 style={{
+                            fontFamily: "Fraunces, Georgia, serif",
+                            fontWeight: 700,
+                            fontSize: 20,
+                            color: T.ink,
+                            margin: "20px 0 6px"
+                        }}>
                             Payment Successful
                         </h3>
-                        <p style={{ fontSize: 13, 
-                                     color: T.muted, 
-                                     margin: 0 }}>
-                                        ₹{amount} paid for your ambulance ride
+                        <p style={{
+                            fontSize: 13,
+                            color: T.muted,
+                            margin: 0
+                        }}>
+                            ₹{amount} paid for your ambulance ride
                         </p>
                     </div>
                 )}

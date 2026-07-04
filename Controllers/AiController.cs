@@ -103,107 +103,81 @@ public class AiController : ControllerBase
         }
 
         // =========================
-        // GEMINI AI
+        // OPENROUTER AI
         // =========================
 
-        var apiKey = _config["Gemini:ApiKey"];
-
-        var prompt = $"""
-You are CareConnect AI Assistant.
-
-About CareConnect:
-
-CareConnect is a Healthcare Management System.
-
-Patient Features:
-- Register
-- Login
-- Doctor Booking
-- Ambulance Booking
-- Medicine Ordering
-- Prescription Download
-- Wallet
-- Profile
-
-Doctor Features:
-- Dashboard
-- Availability
-- Appointments
-- Prescription Writing
-- Profile
-
-Hospital Features:
-- Manage Sessions
-- Manage Doctors
-
-Rules:
-
-- Be friendly.
-- Answer briefly.
-- Give only general health information.
-- Never prescribe medicines.
-- Never confirm a diagnosis.
-- Recommend consulting a doctor when appropriate.
-- For emergencies such as chest pain, stroke symptoms, severe bleeding, breathing difficulty or unconsciousness, advise immediate emergency care.
-
-User Question:
-
-{dto.Message}
-""";
+        var apiKey = _config["Groq:ApiKey"];
 
         var body = new
         {
-            contents = new[]
+            model = "llama-3.3-70b-versatile",
+            messages = new object[]
             {
-                new
-                {
-                    parts = new[]
-                    {
-                        new
-                        {
-                            text = prompt
-                        }
-                    }
-                }
-            }
+        new
+        {
+            role = "system",
+            content = """
+                You are CareConnect AI Assistant.
+
+                CareConnect is a Healthcare Management System.
+
+                Rules:
+                - Be friendly.
+                - Answer briefly.
+                - Never prescribe medicines.
+                - Never confirm a diagnosis.
+                - Recommend consulting a doctor when appropriate.
+                - For emergencies such as chest pain, stroke symptoms, severe bleeding,
+                breathing difficulty or unconsciousness,
+                advise immediate emergency care.
+                """
+        },
+        new
+        {
+            role = "user",
+            content = dto.Message
+        }
+            },
+            temperature = 0.4,
+            max_tokens = 500
         };
 
-        var json = JsonSerializer.Serialize(body);
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "https://api.groq.com/openai/v1/chat/completions");
 
-        var content = new StringContent(
-            json,
+        request.Headers.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(body),
             Encoding.UTF8,
             "application/json");
 
-        var response = await _httpClient.PostAsync(
-            $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}",
-            content);
+        var response = await _httpClient.SendAsync(request);
+
+        var responseText = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
-            var err = await response.Content.ReadAsStringAsync();
-
             return BadRequest(new
             {
-                message = "Gemini API Error",
-                error = err
+                message = "Groq API Error",
+                error = responseText
             });
         }
 
-        var result = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(responseText);
 
-        using var doc = JsonDocument.Parse(result);
-
-        var text = doc.RootElement
-            .GetProperty("candidates")[0]
+        var reply = doc.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
             .GetProperty("content")
-            .GetProperty("parts")[0]
-            .GetProperty("text")
             .GetString();
 
         return Ok(new AiResponseDto
         {
-            Reply = text ?? "",
+            Reply = reply ?? "",
             Action = "none"
         });
     }
