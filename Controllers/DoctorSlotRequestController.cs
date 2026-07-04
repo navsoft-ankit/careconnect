@@ -132,8 +132,8 @@ public class DoctorSlotRequestController : ControllerBase
             })
                         .ToList();
 
-            return Ok(data);
-        }
+        return Ok(data);
+    }
 
     // ==========================
     // CANCEL REQUEST

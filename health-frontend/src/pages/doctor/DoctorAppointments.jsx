@@ -268,65 +268,50 @@ export default function DoctorAppointments() {
                                                 <span style={{ color: T.muted }}>—</span>
                                             )}
                                         </td>
-<td style={{ padding: "15px 20px" }}>
+                                        <td style={{ padding: "15px 20px" }}>
+                                            {item.status === "Pending" ? (
+                                                <div style={{ display: "flex", gap: 8 }}>
 
-    {item.status === "Pending" ? (
+                                                    <ActionBtn
+                                                        label="Accept"
+                                                        bg={T.greenLight}
+                                                        fg={T.green}
+                                                        onClick={() => updateStatus(item.id, "Confirmed")}
+                                                    />
+                                                    <ActionBtn
+                                                        label="Reject"
+                                                        bg="#FEE2E2"
+                                                        fg="#DC2626"
+                                                        onClick={() => updateStatus(item.id, "CancelledByAdmin")}
+                                                    />
+                                                </div>
+                                            ) : item.status === "Confirmed" ? (
+                                                isPast ? (
+                                                    <div style={{ display: "flex", gap: 8 }}>
+                                                        <ActionBtn
+                                                            label="Complete"
+                                                            bg={T.greenLight}
+                                                            fg={T.green}
+                                                            onClick={() => updateStatus(item.id, "Completed")}
+                                                        />
 
-        <div style={{ display: "flex", gap: 8 }}>
+                                                        <ActionBtn
+                                                            label="Not Visited"
+                                                            bg="#FEF3C7"
+                                                            fg="#92400E"
+                                                            onClick={() => updateStatus(item.id, "NotVisited")}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <span style={{ color: T.muted }}>
+                                                        Waiting for appointment
+                                                    </span>
+                                                )
+                                            ) : (
+                                                <span style={{ color: T.muted }}>—</span>
+                                            )}
 
-            <ActionBtn
-                label="Accept"
-                bg={T.greenLight}
-                fg={T.green}
-                onClick={() => updateStatus(item.id, "Confirmed")}
-            />
-
-            <ActionBtn
-                label="Reject"
-                bg="#FEE2E2"
-                fg="#DC2626"
-                onClick={() => updateStatus(item.id, "CancelledByAdmin")}
-            />
-
-        </div>
-
-    ) : item.status === "Confirmed" ? (
-
-        isPast ? (
-
-            <div style={{ display: "flex", gap: 8 }}>
-
-                <ActionBtn
-                    label="Complete"
-                    bg={T.greenLight}
-                    fg={T.green}
-                    onClick={() => updateStatus(item.id, "Completed")}
-                />
-
-                <ActionBtn
-                    label="Not Visited"
-                    bg="#FEF3C7"
-                    fg="#92400E"
-                    onClick={() => updateStatus(item.id, "NotVisited")}
-                />
-
-            </div>
-
-        ) : (
-
-            <span style={{ color: T.muted }}>
-                Waiting for appointment
-            </span>
-
-        )
-
-    ) : (
-
-        <span style={{ color: T.muted }}>—</span>
-
-    )}
-
-</td>
+                                        </td>
                                     </tr>
                                 );
                             })}

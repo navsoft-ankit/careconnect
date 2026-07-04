@@ -200,7 +200,7 @@ namespace HEALTHCARE.Controllers
                 Gender = appointment.Gender,
                 BloodGroup = appointment.BloodGroup,
                 Address = appointment.Address,
-                
+
                 // Appointment
                 AppointmentDate = slot,
                 AppointmentTime = slot.ToString("hh:mm tt")

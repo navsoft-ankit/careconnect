@@ -884,16 +884,16 @@ export default function DoctorAvailability() {
 
                                 const id = Number(e.target.value);
 
-const session = sessions.find(s => s.id === id);
-console.log(session);
+                                const session = sessions.find(s => s.id === id);
+                                console.log(session);
 
-setNewSlot({
-    ...newSlot,
-    hospitalSessionId: id,
-    date: session.date,
-    fromTime: session.startTime.substring(0, 5),
-    toTime: session.endTime.substring(0, 5),
-});
+                                setNewSlot({
+                                    ...newSlot,
+                                    hospitalSessionId: id,
+                                    date: session.date,
+                                    fromTime: session.startTime.substring(0, 5),
+                                    toTime: session.endTime.substring(0, 5),
+                                });
                             }}
                             style={{
                                 width: "100%",
@@ -936,18 +936,18 @@ setNewSlot({
                             Date
                         </label>
 
-<input
-    type="date"
-    value={newSlot.date}
-    readOnly
-    style={{
-        width: "100%",
-        padding: "11px 14px",
-        borderRadius: 10,
-        border: `1px solid ${T.border}`,
-        background: T.creamDark
-    }}
-/>
+                        <input
+                            type="date"
+                            value={newSlot.date}
+                            readOnly
+                            style={{
+                                width: "100%",
+                                padding: "11px 14px",
+                                borderRadius: 10,
+                                border: `1px solid ${T.border}`,
+                                background: T.creamDark
+                            }}
+                        />
 
                     </div>
 
@@ -964,33 +964,33 @@ setNewSlot({
                             From Time
                         </label>
 
-<input
-    type="time"
-    value={newSlot.fromTime}
-    min={
-        sessions.find(
-            s => s.id === Number(newSlot.hospitalSessionId)
-        )?.startTime.substring(0, 5)
-    }
-    max={
-        sessions.find(
-            s => s.id === Number(newSlot.hospitalSessionId)
-        )?.endTime.substring(0, 5)
-    }
-    onChange={(e) =>
-        setNewSlot({
-            ...newSlot,
-            fromTime: e.target.value,
-        })
-    }
-    style={{
-        width: "100%",
-        padding: "11px 14px",
-        borderRadius: 10,
-        border: `1px solid ${T.border}`,
-        background: T.cream,
-    }}
-/>
+                        <input
+                            type="time"
+                            value={newSlot.fromTime}
+                            min={
+                                sessions.find(
+                                    s => s.id === Number(newSlot.hospitalSessionId)
+                                )?.startTime.substring(0, 5)
+                            }
+                            max={
+                                sessions.find(
+                                    s => s.id === Number(newSlot.hospitalSessionId)
+                                )?.endTime.substring(0, 5)
+                            }
+                            onChange={(e) =>
+                                setNewSlot({
+                                    ...newSlot,
+                                    fromTime: e.target.value,
+                                })
+                            }
+                            style={{
+                                width: "100%",
+                                padding: "11px 14px",
+                                borderRadius: 10,
+                                border: `1px solid ${T.border}`,
+                                background: T.cream,
+                            }}
+                        />
                     </div>
 
                     <div style={{ marginBottom: 16 }}>
@@ -1007,25 +1007,25 @@ setNewSlot({
                         </label>
 
                         <input
-    type="time"
-    value={newSlot.toTime}
-    min={
-        sessions.find(
-            s => s.id === Number(newSlot.hospitalSessionId)
-        )?.startTime.substring(0, 5)
-    }
-    max={
-        sessions.find(
-            s => s.id === Number(newSlot.hospitalSessionId)
-        )?.endTime.substring(0, 5)
-    }
-    onChange={(e) =>
-        setNewSlot({
-            ...newSlot,
-            toTime: e.target.value,
-        })
-    }
-/>
+                            type="time"
+                            value={newSlot.toTime}
+                            min={
+                                sessions.find(
+                                    s => s.id === Number(newSlot.hospitalSessionId)
+                                )?.startTime.substring(0, 5)
+                            }
+                            max={
+                                sessions.find(
+                                    s => s.id === Number(newSlot.hospitalSessionId)
+                                )?.endTime.substring(0, 5)
+                            }
+                            onChange={(e) =>
+                                setNewSlot({
+                                    ...newSlot,
+                                    toTime: e.target.value,
+                                })
+                            }
+                        />
                     </div>
 
                     <MaxPatientsInput value={newSlot.maxPatients}
@@ -1101,7 +1101,7 @@ setNewSlot({
                                 const id = Number(e.target.value);
 
                                 const session = sessions.find(s => s.id === id);
-                                
+
 
                                 setEditData({
                                     ...editData,
@@ -1328,7 +1328,6 @@ setNewSlot({
                                 }
                             </div>
                         )}
-
                     {/* Max Patients */}
                     <MaxPatientsInput
                         value={editData.maxPatients}
@@ -1339,7 +1338,6 @@ setNewSlot({
                             })
                         }
                     />
-
                     <div
                         style={{
                             display: "flex",

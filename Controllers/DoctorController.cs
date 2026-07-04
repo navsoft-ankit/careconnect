@@ -87,64 +87,64 @@ public class DoctorController : ControllerBase
         return Ok("Availability added successfully.");
     }
 
-   [HttpGet("availability")]
-public IActionResult GetAvailability()
-{
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-
-    var doctor = _context.Doctors.FirstOrDefault(x => x.UserId == userId);
-
-    if (doctor == null)
-        return NotFound();
-
-    var now = DateTime.Now;
-
-    // শুধুমাত্র যেসব slot শেষ হয়ে গেছে সেগুলো inactive করো
-    var expired = _context.DoctorAvailabilities
-        .Where(x =>
-            x.DoctorId == doctor.Id &&
-            x.IsActive &&
-            x.AvailableTo < now)
-        .ToList();
-
-    if (expired.Any())
+    [HttpGet("availability")]
+    public IActionResult GetAvailability()
     {
-        foreach (var slot in expired)
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var doctor = _context.Doctors.FirstOrDefault(x => x.UserId == userId);
+
+        if (doctor == null)
+            return NotFound();
+
+        var now = DateTime.Now;
+
+        // শুধুমাত্র যেসব slot শেষ হয়ে গেছে সেগুলো inactive করো
+        var expired = _context.DoctorAvailabilities
+            .Where(x =>
+                x.DoctorId == doctor.Id &&
+                x.IsActive &&
+                x.AvailableTo < now)
+            .ToList();
+
+        if (expired.Any())
         {
-            slot.IsActive = false;
+            foreach (var slot in expired)
+            {
+                slot.IsActive = false;
+            }
+
+            _context.SaveChanges();
         }
 
-        _context.SaveChanges();
+        var data = _context.DoctorAvailabilities
+            .Include(x => x.Hospital)
+            .Include(x => x.HospitalSession)
+            .Where(x =>
+                x.DoctorId == doctor.Id &&
+                x.IsActive)
+            .OrderBy(x => x.AvailableFrom)
+            .Select(x => new
+            {
+                x.Id,
+                x.HospitalId,
+                HospitalName = x.Hospital.Name,
+                x.HospitalSessionId,
+                Day = x.HospitalSession.Day,
+                SessionStart = x.HospitalSession.StartTime,
+                SessionEnd = x.HospitalSession.EndTime,
+                x.AvailableFrom,
+                x.AvailableTo,
+                x.Place,
+                x.MaxPatients,
+                x.BookedCount,
+                SeatsLeft = x.MaxPatients - x.BookedCount,
+                x.IsBooked
+            })
+            .ToList();
+
+        return Ok(data);
     }
-
-    var data = _context.DoctorAvailabilities
-        .Include(x => x.Hospital)
-        .Include(x => x.HospitalSession)
-        .Where(x =>
-            x.DoctorId == doctor.Id &&
-            x.IsActive)
-        .OrderBy(x => x.AvailableFrom)
-        .Select(x => new
-        {
-            x.Id,
-            x.HospitalId,
-            HospitalName = x.Hospital.Name,
-            x.HospitalSessionId,
-            Day = x.HospitalSession.Day,
-            SessionStart = x.HospitalSession.StartTime,
-            SessionEnd = x.HospitalSession.EndTime,
-            x.AvailableFrom,
-            x.AvailableTo,
-            x.Place,
-            x.MaxPatients,
-            x.BookedCount,
-            SeatsLeft = x.MaxPatients - x.BookedCount,
-            x.IsBooked
-        })
-        .ToList();
-
-    return Ok(data);
-}
 
     [HttpPut("availability")]
     public IActionResult UpdateAvailability(UpdateAvailabilityDto dto)
@@ -187,44 +187,44 @@ public IActionResult GetAvailability()
     }
 
     [HttpGet("appointments")]
-public IActionResult GetAppointments()
-{
-    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+    public IActionResult GetAppointments()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
-    var doctor = _context.Doctors
-        .FirstOrDefault(x => x.UserId == userId);
+        var doctor = _context.Doctors
+            .FirstOrDefault(x => x.UserId == userId);
 
-    if (doctor == null)
-        return NotFound();
+        if (doctor == null)
+            return NotFound();
 
-    var appointments = _context.Appointments
-        .Include(a => a.Patient)
-        .Include(a => a.DoctorAvailability)
-        .Where(a => a.DoctorId == doctor.Id)
-        .OrderByDescending(a => a.BookedAt)
-        .Select(a => new
-        {
-            id = a.Id,
-            patientId = a.PatientId,
-            patientName = a.PatientName,
-            patientEmail = a.PatientEmail,
-            patientPhone = a.PatientPhone,
-            gender = a.Gender,
-            age = a.PatientDob.HasValue
-                ? DateTime.Today.Year - a.PatientDob.Value.Year
-                : 0,
-            appointmentDate = a.DoctorAvailability!.AvailableFrom.ToString("dd MMM yyyy"),
-            appointmentTime = a.DoctorAvailability.AvailableFrom.ToString("hh:mm tt"),
-            appointmentDateTime = a.DoctorAvailability.AvailableFrom,
-            status = a.Status,
-            amount = a.AdvanceAmount,
-            bookedAt = a.BookedAt,
-            hasPrescription = _context.Prescriptions.Any(p => p.AppointmentId == a.Id)
-        })
-        .ToList();
+        var appointments = _context.Appointments
+            .Include(a => a.Patient)
+            .Include(a => a.DoctorAvailability)
+            .Where(a => a.DoctorId == doctor.Id)
+            .OrderByDescending(a => a.BookedAt)
+            .Select(a => new
+            {
+                id = a.Id,
+                patientId = a.PatientId,
+                patientName = a.PatientName,
+                patientEmail = a.PatientEmail,
+                patientPhone = a.PatientPhone,
+                gender = a.Gender,
+                age = a.PatientDob.HasValue
+                    ? DateTime.Today.Year - a.PatientDob.Value.Year
+                    : 0,
+                appointmentDate = a.DoctorAvailability!.AvailableFrom.ToString("dd MMM yyyy"),
+                appointmentTime = a.DoctorAvailability.AvailableFrom.ToString("hh:mm tt"),
+                appointmentDateTime = a.DoctorAvailability.AvailableFrom,
+                status = a.Status,
+                amount = a.AdvanceAmount,
+                bookedAt = a.BookedAt,
+                hasPrescription = _context.Prescriptions.Any(p => p.AppointmentId == a.Id)
+            })
+            .ToList();
 
-    return Ok(appointments);
-}
+        return Ok(appointments);
+    }
     [HttpPut("appointment/status")]
     public IActionResult UpdateAppointmentStatus(UpdateAppointmentStatusDto dto)
     {

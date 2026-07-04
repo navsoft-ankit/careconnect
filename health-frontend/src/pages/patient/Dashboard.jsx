@@ -6,11 +6,11 @@ import { Link } from "react-router-dom";
 import Chatbot from "./Chatbot";
 import { Stethoscope, Pill, Ambulance, CalendarCheck } from "lucide-react";
 import {
-  HeartPulse,
-  Brain,
-  Bone,
-  Eye,
-  Baby,
+    HeartPulse,
+    Brain,
+    Bone,
+    Eye,
+    Baby,
 } from "lucide-react";
 
 // Stock fallback photos — keyed by doctor.id so the same doctor always
@@ -82,20 +82,20 @@ export default function Dashboard() {
     };
 
     const upcomingAppointments = appointments
-  .filter((a) => {
-    const status = (a.status || "").toLowerCase();
+        .filter((a) => {
+            const status = (a.status || "").toLowerCase();
 
-    return (
-      new Date(a.appointmentTime) > new Date() &&
-      status !== "completed" &&
-      status !== "cancelled" &&
-      status !== "rejected"
-    );
-  })
-  .sort(
-    (a, b) =>
-      new Date(a.appointmentTime) - new Date(b.appointmentTime)
-  );
+            return (
+                new Date(a.appointmentTime) > new Date() &&
+                status !== "completed" &&
+                status !== "cancelled" &&
+                status !== "rejected"
+            );
+        })
+        .sort(
+            (a, b) =>
+                new Date(a.appointmentTime) - new Date(b.appointmentTime)
+        );
 
     return (
         <>
@@ -422,37 +422,37 @@ export default function Dashboard() {
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5">
                         {[
-  {
-    title: "Cardiology",
-    Icon: HeartPulse,
-    color: "text-red-500",
-  },
-  {
-    title: "Neurology",
-    Icon: Brain,
-    color: "text-pink-500",
-  },
-  {
-    title: "Orthopedic",
-    Icon: Bone,
-    color: "text-amber-500",
-  },
-  {
-    title: "Ophthalmology",
-    Icon: Eye,
-    color: "text-blue-500",
-  },
-  {
-    title: "General Medicine",
-    Icon: Stethoscope,
-    color: "text-green-600",
-  },
-  {
-    title: "Pediatrics",
-    Icon: Baby,
-    color: "text-yellow-500",
-  },
-].map((item) => (
+                            {
+                                title: "Cardiology",
+                                Icon: HeartPulse,
+                                color: "text-red-500",
+                            },
+                            {
+                                title: "Neurology",
+                                Icon: Brain,
+                                color: "text-pink-500",
+                            },
+                            {
+                                title: "Orthopedic",
+                                Icon: Bone,
+                                color: "text-amber-500",
+                            },
+                            {
+                                title: "Ophthalmology",
+                                Icon: Eye,
+                                color: "text-blue-500",
+                            },
+                            {
+                                title: "General Medicine",
+                                Icon: Stethoscope,
+                                color: "text-green-600",
+                            },
+                            {
+                                title: "Pediatrics",
+                                Icon: Baby,
+                                color: "text-yellow-500",
+                            },
+                        ].map((item) => (
                             <button
                                 key={item.title}
                                 className="flex items-center justify-center gap-2 bg-white border border-[#E4DFD3] rounded-2xl py-6 px-5 hover:shadow-md hover:border-[#16332B] transition-all"

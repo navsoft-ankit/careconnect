@@ -715,14 +715,21 @@ public class AdminController : ControllerBase
 
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
+
         var fileName =
             Guid.NewGuid() +
             Path.GetExtension(image.FileName);
+
         var path = Path.Combine(folder, fileName);
+
         using var stream = new FileStream(path, FileMode.Create);
+
         await image.CopyToAsync(stream);
+
         product.ImageUrl = "/uploads/products/" + fileName;
+        
         _context.SaveChanges();
+
         return Ok(new
         {
             product.ImageUrl
@@ -730,23 +737,23 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("product/{id}")]
-public IActionResult UpdateProduct(
+    public IActionResult UpdateProduct(
     int id,
     UpdateProductDto dto)
-{
-    var product = _context.Products
-        .FirstOrDefault(x => x.Id == id);
+    {
+        var product = _context.Products
+            .FirstOrDefault(x => x.Id == id);
 
-    if (product == null)
-        return NotFound();
+        if (product == null)
+            return NotFound();
 
-    product.Name = dto.Name;
-    product.Description = dto.Description;
-    product.Price = dto.Price;
-    product.Category = dto.Category;
+        product.Name = dto.Name;
+        product.Description = dto.Description;
+        product.Price = dto.Price;
+        product.Category = dto.Category;
 
-    _context.SaveChanges();
+        _context.SaveChanges();
 
-    return Ok(product);
-}
+        return Ok(product);
+    }
 }
