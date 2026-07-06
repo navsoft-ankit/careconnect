@@ -86,7 +86,13 @@ export default function ContactUs() {
                 className="min-h-screen bg-[#FAF8F3] text-[#16332B]"
                 style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
             >
-                <div className="w-full px-8 lg:px-16 xl:px-24 2xl:px-32 py-16 max-w-[1400px] mx-auto">
+                <div
+                    className="w-full mx-auto"
+                    style={{
+                        maxWidth: "1500px",
+                        padding: "48px 40px",
+                    }}
+                >
 
                     {/* ── Header ── */}
                     <div className="mb-12 max-w-xl">
