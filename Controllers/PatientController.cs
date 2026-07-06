@@ -169,7 +169,6 @@ public class PatientController : ControllerBase
             select new
             {
                 a.Id,
-
                 DoctorId = d.Id,
                 DoctorName = u.FullName,
                 Specialization = d.Specialization,
@@ -180,6 +179,7 @@ public class PatientController : ControllerBase
                 a.Status,
                 a.PaymentStatus,
                 a.AdvanceAmount,
+                a.IsReviewed,
                 SlotId = s.Id,
             }
 
@@ -725,5 +725,74 @@ public class PatientController : ControllerBase
         {
             message = "Message sent successfully."
         });
+    }
+
+    [Authorize(Roles = "Patient")]
+    [HttpPost("review")]
+    public IActionResult SubmitReview(CreateReviewDto dto)
+    {
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var appointment = _context.Appointments
+            .FirstOrDefault(x =>
+                x.Id == dto.AppointmentId &&
+                x.PatientId == userId);
+
+        if (appointment == null)
+            return NotFound("Appointment not found.");
+
+        if (appointment.Status != "Completed")
+            return BadRequest("Only completed appointments can be reviewed.");
+
+        if (appointment.IsReviewed)
+            return BadRequest("Review already submitted.");
+
+        var review = new Review
+        {
+            AppointmentId = appointment.Id,
+            PatientId = userId,
+            DoctorId = appointment.DoctorId,
+            Rating = dto.Rating,
+            Comment = dto.Comment,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Reviews.Add(review);
+
+        appointment.IsReviewed = true;
+
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            Message = "Review submitted successfully."
+        });
+    }
+
+    [HttpGet("home-reviews")]
+    public IActionResult GetHomeReviews()
+    {
+        var reviews = (
+            from r in _context.Reviews
+            join u in _context.Users on r.PatientId equals u.Id
+            join d in _context.Doctors on r.DoctorId equals d.Id
+            join du in _context.Users on d.UserId equals du.Id
+
+            orderby r.CreatedAt descending
+
+            select new
+            {
+                r.Id,
+                PatientName = u.FullName,
+                DoctorName = du.FullName,
+                r.Rating,
+                r.Comment,
+                r.CreatedAt
+            })
+            .Take(6)
+            .ToList();
+
+        return Ok(reviews);
     }
 }

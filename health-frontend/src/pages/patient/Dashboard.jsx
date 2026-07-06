@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../api/axios";
-import { User, ChevronDown } from "lucide-react";
+import { User, ChevronDown, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Chatbot from "./Chatbot";
@@ -42,6 +42,12 @@ export default function Dashboard() {
     const token = localStorage.getItem("token");
     const userName = localStorage.getItem("name") || "My Account";
     const [aboutOpen, setAboutOpen] = useState(false);
+    const [reviews, setReviews] = useState([]);
+
+    // ── Testimonial carousel state ──
+    const testimonialTrackRef = useRef(null);
+    const [testimonialPaused, setTestimonialPaused] = useState(false);
+    const [activeTestimonial, setActiveTestimonial] = useState(0);
 
     useEffect(() => {
         loadData();
@@ -55,9 +61,11 @@ export default function Dashboard() {
             if (token) {
                 const appRes = await api.get("/patient/appointments");
                 const orderRes = await api.get("/patient/orders");
+                const reviewRes = await api.get("/patient/home-reviews");
 
                 setAppointments(appRes.data || []);
                 setOrders(orderRes.data || []);
+                setReviews(reviewRes.data || []);
             }
         } catch (err) {
             console.log(err);
@@ -94,6 +102,43 @@ export default function Dashboard() {
                 new Date(a.appointmentTime) - new Date(b.appointmentTime)
         );
 
+    // ── Testimonial carousel helpers ──
+    function scrollToTestimonial(index) {
+        const track = testimonialTrackRef.current;
+        if (!track || reviews.length === 0) return;
+        const clamped = (index + reviews.length) % reviews.length;
+        const card = track.children[clamped];
+        if (card) {
+            card.scrollIntoView({
+                behavior: "smooth",
+                inline: "center",
+                block: "nearest",
+            });
+        }
+        setActiveTestimonial(clamped);
+    }
+
+    function goToTestimonial(direction) {
+        scrollToTestimonial(activeTestimonial + direction);
+    }
+
+    // Auto-advance every 4s, paused on hover/interaction
+    useEffect(() => {
+        if (testimonialPaused || reviews.length <= 1) return;
+        const timer = setInterval(() => {
+            setActiveTestimonial((prev) => {
+                const next = (prev + 1) % reviews.length;
+                const track = testimonialTrackRef.current;
+                const card = track?.children[next];
+                if (card) {
+                    track.scrollTo({ left: card.offsetLeft, behavior: "smooth" });
+                }
+                return next;
+            });
+        }, 4000);
+        return () => clearInterval(timer);
+    }, [testimonialPaused, reviews.length]);
+
     return (
         <>
             <div className="min-h-screen bg-[#FAF8F3] text-[#16332B] font-[Georgia,serif]">
@@ -124,43 +169,43 @@ export default function Dashboard() {
                             <a href="/patient/EmergencyInfo" className="hover:text-[#16332B] transition">Emergency Info</a>
                             <a href="/patient/Locations" className="hover:text-[#16332B] transition">Locations</a>
 
-<div
-    className="relative"
-    onMouseEnter={() => setAboutOpen(true)}
-    onMouseLeave={() => setAboutOpen(false)}
->
-    <button className="flex items-center gap-1 hover:text-[#16332B] transition">
-        About Us
-        <ChevronDown size={16} />
-    </button>
+                            <div
+                                className="relative"
+                                onMouseEnter={() => setAboutOpen(true)}
+                                onMouseLeave={() => setAboutOpen(false)}
+                            >
+                                <button className="flex items-center gap-1 hover:text-[#16332B] transition">
+                                    About Us
+                                    <ChevronDown size={16} />
+                                </button>
 
-    {aboutOpen && (
-        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E4DFD3] overflow-hidden z-50">
+                                {aboutOpen && (
+                                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E4DFD3] overflow-hidden z-50">
 
-            <a
-                href="/patient/AboutUs"
-                className="block px-5 py-3 hover:bg-[#F5F5F0]"
-            >
-                About Us
-            </a>
+                                        <a
+                                            href="/patient/AboutUs"
+                                            className="block px-5 py-3 hover:bg-[#F5F5F0]"
+                                        >
+                                            About Us
+                                        </a>
 
-            <a
-                href="/patient/blog"
-                className="block px-5 py-3 hover:bg-[#F5F5F0]"
-            >
-                Blogs
-            </a>
+                                        <a
+                                            href="/patient/blog"
+                                            className="block px-5 py-3 hover:bg-[#F5F5F0]"
+                                        >
+                                            Blogs
+                                        </a>
 
-            <a
-                href="/patient/Contacts"
-                className="block px-5 py-3 hover:bg-[#F5F5F0]"
-            >
-                Contact Us
-            </a>
+                                        <a
+                                            href="/patient/Contacts"
+                                            className="block px-5 py-3 hover:bg-[#F5F5F0]"
+                                        >
+                                            Contact Us
+                                        </a>
 
-        </div>
-    )}
-</div>
+                                    </div>
+                                )}
+                            </div>
                         </nav>
                         <div className="hidden lg:flex items-center gap-4">
 
@@ -717,43 +762,144 @@ export default function Dashboard() {
                     </section>
                 )}
 
-                {/* TESTIMONIALS */}
+                {/* TESTIMONIALS — premium auto-scrolling carousel */}
                 <section className="max-w-7xl mx-auto px-6 lg:px-10 mt-24">
-                    <h2 className="text-4xl font-normal text-center mb-12">
-                        What our patients say
-                    </h2>
+                    <div className="flex justify-between items-end mb-12">
+                        <div>
+                            <p className="font-[system-ui,sans-serif] text-sm uppercase tracking-wide text-[#B5562C] font-semibold mb-3">
+                                Testimonials
+                            </p>
+                            <h2 className="text-4xl font-normal">
+                                What our patients say
+                            </h2>
+                        </div>
 
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {[
-                            {
-                                name: "Rahul Sharma",
-                                review: "Excellent doctors and smooth appointment booking.",
-                            },
-                            {
-                                name: "Priya Das",
-                                review: "Medicine delivery was fast and affordable.",
-                            },
-                            {
-                                name: "Ankit Roy",
-                                review: "Ambulance reached within minutes during emergency.",
-                            },
-                        ].map((item, index) => (
-                            <div
-                                key={index}
-                                className="bg-white rounded-2xl border border-[#E4DFD3] p-8 font-[system-ui,sans-serif]"
-                            >
-                                <div className="text-[#B5562C] text-lg">★★★★★</div>
-
-                                <p className="text-[#16332B]/75 mt-5 leading-7">
-                                    "{item.review}"
-                                </p>
-
-                                <h3 className="font-semibold mt-6 font-[Georgia,serif]">
-                                    {item.name}
-                                </h3>
+                        {reviews.length > 1 && (
+                            <div className="hidden sm:flex items-center gap-3">
+                                <button
+                                    onClick={() => goToTestimonial(-1)}
+                                    aria-label="Previous testimonial"
+                                    className="w-12 h-12 rounded-full bg-white border border-[#E4DFD3] flex items-center justify-center text-[#16332B] hover:bg-[#16332B] hover:text-white hover:border-[#16332B] transition-all shadow-sm"
+                                >
+                                    <ChevronLeft size={20} />
+                                </button>
+                                <button
+                                    onClick={() => goToTestimonial(1)}
+                                    aria-label="Next testimonial"
+                                    className="w-12 h-12 rounded-full bg-white border border-[#E4DFD3] flex items-center justify-center text-[#16332B] hover:bg-[#16332B] hover:text-white hover:border-[#16332B] transition-all shadow-sm"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
                             </div>
-                        ))}
+                        )}
                     </div>
+
+                    {reviews.length === 0 ? (
+                        <div className="bg-white border border-[#E4DFD3] rounded-2xl py-16 text-center font-[system-ui,sans-serif] text-[#16332B]/60">
+                            No reviews yet.
+                        </div>
+                    ) : (
+                        <div
+                            className="relative"
+                            onMouseEnter={() => setTestimonialPaused(true)}
+                            onMouseLeave={() => setTestimonialPaused(false)}
+                        >
+                            {/* Edge fades for a premium, non-abrupt cutoff */}
+                            <div className="pointer-events-none absolute left-0 top-0 bottom-4 w-16 z-10 bg-gradient-to-r from-[#FAF8F3] to-transparent" />
+                            <div className="pointer-events-none absolute right-0 top-0 bottom-4 w-16 z-10 bg-gradient-to-l from-[#FAF8F3] to-transparent" />
+
+                            {/* Mobile-only arrows, overlaid */}
+                            {reviews.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={() => goToTestimonial(-1)}
+                                        aria-label="Previous testimonial"
+                                        className="sm:hidden absolute left-1 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-[#E4DFD3] flex items-center justify-center text-[#16332B] shadow-md"
+                                    >
+                                        <ChevronLeft size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => goToTestimonial(1)}
+                                        aria-label="Next testimonial"
+                                        className="sm:hidden absolute right-1 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-[#E4DFD3] flex items-center justify-center text-[#16332B] shadow-md"
+                                    >
+                                        <ChevronRight size={18} />
+                                    </button>
+                                </>
+                            )}
+
+                            <div
+                                ref={testimonialTrackRef}
+                                className="
+flex
+gap-7
+overflow-x-hidden
+scroll-smooth
+items-stretch
+"
+                            >
+                                {reviews.map((item, idx) => (
+                                    <div
+                                        key={item.id}
+                                        data-card
+                                        className={`min-w-[380px]
+lg:min-w-[390px] max-w-[340px] bg-white rounded-2xl border p-8 shrink-0 snap-start relative transition-all duration-300 ${idx === activeTestimonial
+                                                ? "border-[#16332B]/30 shadow-lg -translate-y-1"
+                                                : "border-[#E4DFD3] shadow-sm"
+                                            }`}
+                                    >
+                                        <Quote
+                                            size={34}
+                                            className="text-[#16332B]/10 absolute top-6 right-6"
+                                            strokeWidth={1.5}
+                                        />
+
+                                        <div className="text-[#B5562C] text-lg tracking-wide">
+                                            {"★".repeat(item.rating)}
+                                            <span className="text-[#E4DFD3]">
+                                                {"★".repeat(Math.max(0, 5 - item.rating))}
+                                            </span>
+                                        </div>
+
+                                        <p className="text-[#16332B]/75 mt-5 leading-7 min-h-[90px] font-[system-ui,sans-serif] text-[15px]">
+                                            "{item.comment}"
+                                        </p>
+
+                                        <div className="flex items-center gap-3 mt-6 pt-6 border-t border-[#E4DFD3]">
+                                            <div className="w-10 h-10 rounded-full bg-[#16332B]/10 text-[#16332B] flex items-center justify-center font-semibold font-[Georgia,serif]">
+                                                {(item.patientName || "P")[0].toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold font-[Georgia,serif] text-[15px]">
+                                                    {item.patientName}
+                                                </h3>
+                                                <p className="text-sm text-gray-500 font-[system-ui,sans-serif]">
+                                                    Reviewed {item.doctorName}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Progress dots */}
+                            {reviews.length > 1 && (
+                                <div className="flex justify-center gap-2 mt-8">
+                                    {reviews.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => scrollToTestimonial(idx)}
+                                            aria-label={`Go to testimonial ${idx + 1}`}
+                                            className={`h-2 rounded-full transition-all duration-300 ${idx === activeTestimonial
+                                                    ? "w-7 bg-[#16332B]"
+                                                    : "w-2 bg-[#E4DFD3] hover:bg-[#16332B]/40"
+                                                }`}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </section>
 
                 {/* FAQ */}

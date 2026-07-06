@@ -12,6 +12,7 @@ public class Appointment
     public decimal AdvanceAmount { get; set; }
     public decimal WalletUsed { get; set; } = 0;
     public string? RazorpayPaymentId { get; set; }
+    
     // Navigation
     public AppUser? Patient { get; set; }
     public Doctor? Doctor { get; set; }
@@ -24,4 +25,5 @@ public class Appointment
     public string BloodGroup { get; set; } = "";
     public string Address { get; set; } = "";
     public string Relationship { get; set; } = "Self";
+    public bool IsReviewed { get; set; } = false;
 }

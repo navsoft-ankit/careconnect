@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../api/axios";
 import { Toaster, toast } from "react-hot-toast";
 import {
-    Calendar, Clock, Search, RefreshCw, ChevronLeft, ChevronRight,
+    Calendar, Clock, Star, Search, RefreshCw, ChevronLeft, ChevronRight,
     CheckCircle2, XCircle, AlertCircle, IndianRupee,
-    Stethoscope, Building2, MapPin, Hash, Plus, Download, Receipt,
+    Stethoscope, Building2, MapPin, Hash, Plus, Download, Receipt, X,
 } from "lucide-react";
 
 /* ─── Tokens ──────────────────────────────────── */
@@ -232,6 +232,166 @@ function CancelModal({ open, loading, onClose, onConfirm }) {
     );
 }
 
+/* ─── Review / Rate Doctor Modal ──────────────── */
+function ReviewModal({ open, appt, rating, comment, loading, onClose, onRatingChange, onCommentChange, onSubmit }) {
+    if (!open || !appt) return null;
+    return (
+        <div style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            background: "rgba(0,0,0,.45)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16
+        }}>
+            <div style={{
+                background: T.white,
+                borderRadius: 20,
+                width: "100%",
+                maxWidth: 440,
+                padding: 32,
+                boxShadow: "0 20px 60px rgba(0,0,0,.2)",
+                position: "relative",
+            }}>
+                <button
+                    onClick={onClose}
+                    style={{
+                        position: "absolute",
+                        top: 18,
+                        right: 18,
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        border: "none",
+                        background: T.cream,
+                        color: T.muted,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                    }}
+                >
+                    <X size={16} />
+                </button>
+
+                <div style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    background: "#FFF7D6",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 20
+                }}>
+                    <Star size={26} color="#B7791F" />
+                </div>
+
+                <h2 style={{
+                    fontFamily: "Fraunces, serif",
+                    fontWeight: 700,
+                    fontSize: 22,
+                    color: T.ink,
+                    margin: "0 0 4px"
+                }}>Rate Your Visit</h2>
+
+                <p style={{
+                    fontSize: 14,
+                    color: T.muted,
+                    margin: "0 0 20px"
+                }}>
+                    How was your appointment with <strong style={{ color: T.ink }}>{appt.doctorName}</strong>?
+                </p>
+
+                <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                    {[1, 2, 3, 4, 5].map(n => (
+                        <button
+                            key={n}
+                            onClick={() => onRatingChange(n)}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                padding: 4,
+                            }}
+                        >
+                            <Star
+                                size={30}
+                                color={n <= rating ? "#F4B400" : T.border}
+                                fill={n <= rating ? "#F4B400" : "none"}
+                            />
+                        </button>
+                    ))}
+                </div>
+
+                <textarea
+                    value={comment}
+                    onChange={e => onCommentChange(e.target.value)}
+                    placeholder="Share a few words about your experience (optional)"
+                    rows={4}
+                    style={{
+                        width: "100%",
+                        borderRadius: 12,
+                        border: `1.5px solid ${T.border}`,
+                        padding: "12px 14px",
+                        fontSize: 14,
+                        fontFamily: "Inter, sans-serif",
+                        outline: "none",
+                        resize: "none",
+                        background: T.cream,
+                        color: T.ink,
+                        marginBottom: 24,
+                    }}
+                />
+
+                <div style={{ display: "flex", gap: 12 }}>
+                    <button onClick={onClose}
+                        style={{
+                            flex: 1,
+                            height: 46,
+                            borderRadius: 12,
+                            border: `1.5px solid ${T.border}`,
+                            background: T.cream,
+                            color: T.ink,
+                            fontWeight: 600,
+                            fontSize: 14,
+                            cursor: "pointer"
+                        }}>
+                        Cancel
+                    </button>
+                    <button onClick={onSubmit}
+                        disabled={loading}
+                        style={{
+                            flex: 1,
+                            height: 46,
+                            borderRadius: 12,
+                            border: "none",
+                            background: T.green,
+                            color: T.white,
+                            fontWeight: 700,
+                            fontSize: 14,
+                            cursor: loading ? "not-allowed" : "pointer",
+                            opacity: loading ? .7 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 8,
+                        }}>
+                        {loading ? (
+                            <>
+                                <RefreshCw size={14} style={{ animation: "spin 1s linear infinite" }} />
+                                Submitting…
+                            </>
+                        ) : "Submit Review"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /* ─── Small pill action button used in the row ─── */
 function PillBtn({ icon, label, loadingLabel, loading, onClick, bg, fg }) {
     return (
@@ -270,7 +430,16 @@ function PillBtn({ icon, label, loadingLabel, loading, onClick, bg, fg }) {
 }
 
 /* ─── Appointment Row ─────────────────────────── */
-function AppointmentRow({ appt, onCancel, onDownloadRx, onDownloadBill, downloadingRxId, downloadingBillId, last }) {
+function AppointmentRow({
+    appt,
+    onCancel,
+    onDownloadRx,
+    onDownloadBill,
+    downloadingRxId,
+    downloadingBillId,
+    onReview,
+    last
+}) {
     const status = STATUS_CFG[appt.status] || STATUS_CFG.Pending;
     const payment = PAYMENT_CFG[appt.paymentStatus] || PAYMENT_CFG.Pending;
     const initial = (appt.doctorName || "D")[0].toUpperCase();
@@ -333,33 +502,33 @@ function AppointmentRow({ appt, onCancel, onDownloadRx, onDownloadBill, download
             </div>
 
             {/* Date */}
-            <div style={{ 
-                     display: "flex", 
-                     alignItems: "center", 
-                     gap: 6 
-                    }}>
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6
+            }}>
 
                 <Calendar size={13} color={T.green} />
-                <span 
-                    style={{ 
-                        fontSize: 13, 
-                        color: T.ink 
+                <span
+                    style={{
+                        fontSize: 13,
+                        color: T.ink
                     }}>{fmtDate(appt.appointmentDate)}
                 </span>
             </div>
 
             {/* Time */}
-            <div style={{ 
-                     display: "flex", 
-                     alignItems: "center", 
-                     gap: 6 
-                    }}>
+            <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6
+            }}>
 
                 <Clock size={13} color={T.green} />
-                <span style={{ 
-                          fontSize: 13, 
-                          color: T.ink 
-                        }}>{fmtTime(appt.appointmentTime)}
+                <span style={{
+                    fontSize: 13,
+                    color: T.ink
+                }}>{fmtTime(appt.appointmentTime)}
                 </span>
             </div>
 
@@ -483,13 +652,44 @@ function AppointmentRow({ appt, onCancel, onDownloadRx, onDownloadBill, download
                     />
                 )}
 
+                {appt.status === "Completed" &&
+                    !appt.isReviewed && (
+
+                        <PillBtn
+                            icon={<Star size={13} />}
+                            label="Rate Doctor"
+                            loadingLabel=""
+                            loading={false}
+                            onClick={() => onReview(appt)}
+                            bg="#FFF7D6"
+                            fg="#B7791F"
+
+                        />
+                    )}
+
+                {appt.isReviewed && (
+
+                    <div
+                        style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#15803D"
+                        }}
+                    >
+
+                        ★★★★★ Reviewed
+
+                    </div>
+
+                )}
+
                 {!canBill && appt.status !== "Confirmed" && (
-                    <span style={{ 
-                              color: T.muted, 
-                              fontSize: 12, 
-                              alignSelf: "flex-end" 
-                            }}
-                            >—
+                    <span style={{
+                        color: T.muted,
+                        fontSize: 12,
+                        alignSelf: "flex-end"
+                    }}
+                    >—
                     </span>
                 )}
             </div>
@@ -538,6 +738,11 @@ export default function Appointments() {
     const [cancelLoading, setCancelLoading] = useState(false);
     const [downloadingRxId, setDownloadingRxId] = useState(null);
     const [downloadingBillId, setDownloadingBillId] = useState(null);
+    const [reviewOpen, setReviewOpen] = useState(false);
+    const [reviewAppointment, setReviewAppointment] = useState(null);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState("");
+    const [reviewLoading, setReviewLoading] = useState(false);
 
     async function load() {
         try {
@@ -615,6 +820,45 @@ export default function Appointments() {
         );
     }
 
+    function closeReviewModal() {
+        setReviewOpen(false);
+        setReviewAppointment(null);
+        setRating(5);
+        setComment("");
+    }
+
+    async function submitReview() {
+        try {
+
+            setReviewLoading(true);
+
+            await api.post("/patient/review", {
+                appointmentId: reviewAppointment.id,
+                rating,
+                comment
+            });
+
+            toast.success("Review submitted");
+            setAppointments(prev =>
+                prev.map(x =>
+                    x.id === reviewAppointment.id
+                        ? { ...x, isReviewed: true }
+                        : x
+                )
+            );
+
+            closeReviewModal();
+
+        } catch (err) {
+            toast.error(
+                err?.response?.data ||
+                "Unable to submit review."
+            );
+        } finally {
+            setReviewLoading(false);
+        }
+    }
+
     const filtered = useMemo(() => {
         let d = [...appointments];
         if (search) d = d.filter(a => (a.doctorName || "").toLowerCase().includes(search.toLowerCase()));
@@ -648,6 +892,17 @@ export default function Appointments() {
         <>
             <Toaster position="top-right" />
             <CancelModal open={cancelId !== null} loading={cancelLoading} onClose={() => setCancelId(null)} onConfirm={cancelAppointment} />
+            <ReviewModal
+                open={reviewOpen}
+                appt={reviewAppointment}
+                rating={rating}
+                comment={comment}
+                loading={reviewLoading}
+                onClose={closeReviewModal}
+                onRatingChange={setRating}
+                onCommentChange={setComment}
+                onSubmit={submitReview}
+            />
 
             <div style={{ minHeight: "100vh", background: T.cream, fontFamily: "Inter, sans-serif", color: T.ink }}>
                 <style>{`
@@ -926,6 +1181,13 @@ export default function Appointments() {
                                                 downloadingRxId={downloadingRxId}
                                                 downloadingBillId={downloadingBillId}
                                                 last={i === current.length - 1}
+                                                onReview={(appt) => {
+
+                                                    setReviewAppointment(appt);
+
+                                                    setReviewOpen(true);
+
+                                                }}
                                             />
                                         </div>
                                     );
@@ -1027,6 +1289,7 @@ export default function Appointments() {
                 </div>
             </div>
         </>
+
     );
 }
 
