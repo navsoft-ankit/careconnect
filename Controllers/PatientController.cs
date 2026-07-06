@@ -478,7 +478,6 @@ public class PatientController : ControllerBase
     };
 
     // Replace CancelAppointment in your existing PatientController.cs
-
     [Authorize(Roles = "Patient")]
     [HttpPut("appointment/cancel/{id}")]
     public IActionResult CancelAppointment(int id)

@@ -831,21 +831,20 @@ export default function Dashboard() {
                             <div
                                 ref={testimonialTrackRef}
                                 className="
-flex
-gap-7
-overflow-x-hidden
-scroll-smooth
-items-stretch
-"
+                                        flex
+                                        gap-7
+                                        overflow-x-hidden
+                                        scroll-smooth
+                                        items-stretch
+                                        "
                             >
                                 {reviews.map((item, idx) => (
                                     <div
                                         key={item.id}
                                         data-card
-                                        className={`min-w-[380px]
-lg:min-w-[390px] max-w-[340px] bg-white rounded-2xl border p-8 shrink-0 snap-start relative transition-all duration-300 ${idx === activeTestimonial
-                                                ? "border-[#16332B]/30 shadow-lg -translate-y-1"
-                                                : "border-[#E4DFD3] shadow-sm"
+                                        className={`min-w-[380px] lg:min-w-[390px] max-w-[340px] bg-white rounded-2xl border p-8 shrink-0 snap-start relative transition-all duration-300 ${idx === activeTestimonial
+                                            ? "border-[#16332B]/30 shadow-lg -translate-y-1"
+                                            : "border-[#E4DFD3] shadow-sm"
                                             }`}
                                     >
                                         <Quote
@@ -891,8 +890,8 @@ lg:min-w-[390px] max-w-[340px] bg-white rounded-2xl border p-8 shrink-0 snap-sta
                                             onClick={() => scrollToTestimonial(idx)}
                                             aria-label={`Go to testimonial ${idx + 1}`}
                                             className={`h-2 rounded-full transition-all duration-300 ${idx === activeTestimonial
-                                                    ? "w-7 bg-[#16332B]"
-                                                    : "w-2 bg-[#E4DFD3] hover:bg-[#16332B]/40"
+                                                ? "w-7 bg-[#16332B]"
+                                                : "w-2 bg-[#E4DFD3] hover:bg-[#16332B]/40"
                                                 }`}
                                         />
                                     ))}
