@@ -79,7 +79,6 @@ export default function BookAppointment() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const doctorId = searchParams.get("doctorId");
-
     const [step, setStep] = useState(0);
     const [doctor, setDoctor] = useState(null);
     const [slots, setSlots] = useState([]);
@@ -154,9 +153,7 @@ export default function BookAppointment() {
     async function loadProfile() {
 
         try {
-
             const res = await api.get("/patient/profile");
-
             setBilling({
                 patientName: res.data.fullName || "",
                 patientPhone: res.data.phone || "",
@@ -169,13 +166,10 @@ export default function BookAppointment() {
                 address: res.data.address || "",
                 relationship: "Self"
             });
-
         } catch {
 
             toast.error("Failed to load profile.");
-
         }
-
     }
 
     function goToConfirm(slot) {
@@ -190,11 +184,8 @@ export default function BookAppointment() {
     }
 
     useEffect(() => {
-
         if (!useProfile) return;
-
         loadProfile();
-
     }, [useProfile]);
 
     async function confirmBooking(paymentId = null) {
@@ -202,14 +193,7 @@ export default function BookAppointment() {
 
         try {
             const res = await api.post("/patient/book", {
-                doctorAvailabilityId: selectedSlot.id,
-
-                paymentMethod,
-
-                useRefundBalance,
-
-                razorpayPaymentId: paymentId,
-
+                doctorAvailabilityId: selectedSlot.id, paymentMethod, useRefundBalance, razorpayPaymentId: paymentId,
                 patientName: billing.patientName,
                 patientPhone: billing.patientPhone,
                 patientEmail: billing.patientEmail,
@@ -248,7 +232,6 @@ export default function BookAppointment() {
     return (
         <>
             <Toaster position="top-right" />
-
             <div className="min-h-screen bg-[#F8F6F0]">
                 <div
                     className="w-full mx-auto"
@@ -267,7 +250,6 @@ export default function BookAppointment() {
                             Back
                         </button>
                     )}
-
                     <div
                         className="bg-white shadow-lg"
                         style={{
@@ -277,7 +259,6 @@ export default function BookAppointment() {
                             minHeight: "82vh",
                         }}
                     >
-
                         <StepHeader step={step} doctorName={doctor?.name} />
 
                         {error && (
@@ -289,7 +270,6 @@ export default function BookAppointment() {
                         {!error && step === 0 && (
                             <div>
                                 {loadingSlots && <SlotSkeleton />}
-
                                 {!loadingSlots && slots.length === 0 && (
                                     <div className="text-center py-10">
                                         <p className="text-[#16332B] font-medium mt-4">
@@ -350,7 +330,6 @@ export default function BookAppointment() {
                         )}
                         {!error && step === 1 && selectedSlot && (
                             <div>
-
                                 <div className="flex items-center justify-between mb-6">
 
                                     <h3 className="text-xl font-semibold text-[#16332B]">
@@ -358,7 +337,6 @@ export default function BookAppointment() {
                                     </h3>
 
                                     <label className="flex items-center gap-2 text-sm">
-
                                         <input
                                             type="checkbox"
                                             checked={useProfile}
@@ -366,13 +344,9 @@ export default function BookAppointment() {
                                                 setUseProfile(e.target.checked)
                                             }
                                         />
-
                                         Use My Profile
-
                                     </label>
-
                                 </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                                     <div>
@@ -521,9 +495,7 @@ export default function BookAppointment() {
                                                 })
                                             }
                                         />
-
                                     </div>
-
                                 </div>
 
                                 <button
@@ -901,10 +873,8 @@ export default function BookAppointment() {
                         </button>
 
                     </div>
-
                 </div>
             )}
         </>
-
     );
 }

@@ -333,16 +333,36 @@ function AppointmentRow({ appt, onCancel, onDownloadRx, onDownloadBill, download
             </div>
 
             {/* Date */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ 
+                     display: "flex", 
+                     alignItems: "center", 
+                     gap: 6 
+                    }}>
+
                 <Calendar size={13} color={T.green} />
-                <span style={{ fontSize: 13, color: T.ink }}>{fmtDate(appt.appointmentDate)}</span>
+                <span 
+                    style={{ 
+                        fontSize: 13, 
+                        color: T.ink 
+                    }}>{fmtDate(appt.appointmentDate)}
+                </span>
             </div>
 
             {/* Time */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ 
+                     display: "flex", 
+                     alignItems: "center", 
+                     gap: 6 
+                    }}>
+
                 <Clock size={13} color={T.green} />
-                <span style={{ fontSize: 13, color: T.ink }}>{fmtTime(appt.appointmentTime)}</span>
+                <span style={{ 
+                          fontSize: 13, 
+                          color: T.ink 
+                        }}>{fmtTime(appt.appointmentTime)}
+                </span>
             </div>
+
             {/* Place to Visit */}
             <div
                 style={{
@@ -464,7 +484,13 @@ function AppointmentRow({ appt, onCancel, onDownloadRx, onDownloadBill, download
                 )}
 
                 {!canBill && appt.status !== "Confirmed" && (
-                    <span style={{ color: T.muted, fontSize: 12, alignSelf: "flex-end" }}>—</span>
+                    <span style={{ 
+                              color: T.muted, 
+                              fontSize: 12, 
+                              alignSelf: "flex-end" 
+                            }}
+                            >—
+                    </span>
                 )}
             </div>
         </div>
@@ -596,9 +622,14 @@ export default function Appointments() {
             if (statusFilter === "Cancelled") d = d.filter(a => a.status.includes("Cancelled"));
             else d = d.filter(a => a.status === statusFilter);
         }
-        d.sort((a, b) => sortBy === "Newest"
-            ? new Date(b.bookedAt) - new Date(a.bookedAt)
-            : new Date(a.bookedAt) - new Date(b.bookedAt));
+        d.sort((a, b) => {
+            const dateA = new Date(a.appointmentDate);
+            const dateB = new Date(b.appointmentDate);
+
+            return sortBy === "Newest"
+                ? dateB - dateA
+                : dateA - dateB;
+        });
         return d;
     }, [appointments, search, statusFilter, sortBy]);
 
@@ -663,7 +694,6 @@ export default function Appointments() {
                                 organized in one place.
                             </span>
                         </h1>
-
 
                         <a href="/patient/doctors"
                             style={{
@@ -866,19 +896,40 @@ export default function Appointments() {
                             )}
 
                             {loading && [...Array(5)].map((_, i) => <SkeletonRow key={i} />)}
-
-                            {!loading && current.map((a, i) => (
-                                <AppointmentRow
-                                    key={a.id}
-                                    appt={a}
-                                    onCancel={setCancelId}
-                                    onDownloadRx={downloadPrescription}
-                                    onDownloadBill={downloadBill}
-                                    downloadingRxId={downloadingRxId}
-                                    downloadingBillId={downloadingBillId}
-                                    last={i === current.length - 1}
-                                />
-                            ))}
+                            {!loading &&
+                                current.map((a, i) => {
+                                    const currentDate = fmtDate(a.appointmentDate);
+                                    const previousDate =
+                                        i > 0 ? fmtDate(current[i - 1].appointmentDate) : null;
+                                    return (
+                                        <div key={a.id}>
+                                            {currentDate !== previousDate && (
+                                                <div
+                                                    style={{
+                                                        background: T.creamDark,
+                                                        padding: "12px 24px",
+                                                        fontWeight: 700,
+                                                        fontSize: 16,
+                                                        color: T.green,
+                                                        borderTop: `1px solid ${T.border}`,
+                                                        borderBottom: `1px solid ${T.border}`,
+                                                    }}
+                                                >
+                                                    {currentDate}
+                                                </div>
+                                            )}
+                                            <AppointmentRow
+                                                appt={a}
+                                                onCancel={setCancelId}
+                                                onDownloadRx={downloadPrescription}
+                                                onDownloadBill={downloadBill}
+                                                downloadingRxId={downloadingRxId}
+                                                downloadingBillId={downloadingBillId}
+                                                last={i === current.length - 1}
+                                            />
+                                        </div>
+                                    );
+                                })}
 
                             {!loading && current.length === 0 && (
                                 <div style={{

@@ -38,12 +38,10 @@ export default function Dashboard() {
     const [search, setSearch] = useState("");
     const [specialization, setSpecialization] = useState("");
     const [menuOpen, setMenuOpen] = useState(false);
-
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
-
     const userName = localStorage.getItem("name") || "My Account";
-
+    const [aboutOpen, setAboutOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -71,7 +69,6 @@ export default function Dashboard() {
     );
 
     // Sends the search box + specialization dropdown to the full Doctors page,
-    // carrying the values along as query params.
     const handleSearch = () => {
         const params = new URLSearchParams();
         if (search.trim()) params.set("search", search.trim());
@@ -127,9 +124,43 @@ export default function Dashboard() {
                             <a href="/patient/EmergencyInfo" className="hover:text-[#16332B] transition">Emergency Info</a>
                             <a href="/patient/Locations" className="hover:text-[#16332B] transition">Locations</a>
 
-                            <a href="/patient/AboutUs" className="flex items-center gap-1 hover:text-[#16332B] transition">
-                                AboutUs <span className="text-xs">▾</span>
-                            </a>
+<div
+    className="relative"
+    onMouseEnter={() => setAboutOpen(true)}
+    onMouseLeave={() => setAboutOpen(false)}
+>
+    <button className="flex items-center gap-1 hover:text-[#16332B] transition">
+        About Us
+        <ChevronDown size={16} />
+    </button>
+
+    {aboutOpen && (
+        <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-[#E4DFD3] overflow-hidden z-50">
+
+            <a
+                href="/patient/AboutUs"
+                className="block px-5 py-3 hover:bg-[#F5F5F0]"
+            >
+                About Us
+            </a>
+
+            <a
+                href="/patient/blog"
+                className="block px-5 py-3 hover:bg-[#F5F5F0]"
+            >
+                Blogs
+            </a>
+
+            <a
+                href="/patient/Contacts"
+                className="block px-5 py-3 hover:bg-[#F5F5F0]"
+            >
+                Contact Us
+            </a>
+
+        </div>
+    )}
+</div>
                         </nav>
                         <div className="hidden lg:flex items-center gap-4">
 
@@ -167,7 +198,6 @@ export default function Dashboard() {
 
                         </div>
 
-
                         <button
                             className="lg:hidden text-2xl"
                             onClick={() => setMenuOpen(!menuOpen)}
@@ -179,13 +209,13 @@ export default function Dashboard() {
 
                     {menuOpen && (
                         <div className="lg:hidden border-t border-[#E4DFD3] px-6 py-6 flex flex-col gap-4 font-[system-ui,sans-serif] text-[15px]">
-                            <a href="/patient/ambulance">Emergency Info</a>
-                            <a href="/patient/doctors">Locations</a>
+                            <a href="/patient/ambulance">Ambulance</a>
+                            <a href="/patient/doctors">Doctors</a>
                             <a href="/patient/orders">Orders</a>
-                            <a href="#">For You</a>
-                            <a href="#">For Family</a>
-                            <a href="#">For Business</a>
-                            <a href="#" className="font-medium">Log in</a>
+                            <a href="/patient/products">Products</a>
+                            <a href="/patient/appointments">Appoinments</a>
+                            <a href="/patient/AboutUs">About Us</a>
+                            <a href="/login" className="font-medium">Log in</a>
                             <a
                                 href="/patient/doctors"
                                 className="bg-[#16332B] text-white px-6 py-3 rounded-full font-medium text-center"

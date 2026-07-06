@@ -15,25 +15,22 @@ import { toast, Toaster } from "react-hot-toast";
 
 const STEPS = ["Pickup", "Destination", "Confirm"];
 
-
-// Only Non-AC is offered on this flow — kept as a constant so the rate
-// and label stay in one place instead of being hardcoded inline.
 const VEHICLES = {
     NonAC: {
         label: "Basic (Non-AC)",
-        rate: 25,
+        rate: 45,
         icon: "🚑",
         note: "Standard transport for stable patients",
     },
     AC: {
         label: "AC Ambulance",
-        rate: 35,
+        rate: 75,
         icon: "❄️",
         note: "Comfortable transport",
     },
     Big: {
         label: "Big / ICU Ambulance",
-        rate: 60,
+        rate: 150,
         icon: "🏥",
         note: "Critical care support",
     },
@@ -86,21 +83,16 @@ export default function AmbulanceRequest() {
     const VEHICLE = VEHICLES[vehicleType] || VEHICLES.NonAC;
     const [ambulances, setAmbulances] = useState([]);
     const [loadingAmbulances, setLoadingAmbulances] = useState(false);
-
     const [step, setStep] = useState(0);
-
     const [locating, setLocating] = useState(false);
     const [locationError, setLocationError] = useState("");
     const [pickup, setPickup] = useState(null); // { lat, lng }
     const [pickupLabel, setPickupLabel] = useState("");
-
     const [destination, setDestination] = useState(null);
     const [destinationAddress, setDestinationAddress] = useState("");
     const [search, setSearch] = useState("");
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
-
-    
     const [submitting, setSubmitting] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
@@ -203,8 +195,6 @@ export default function AmbulanceRequest() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Load Non-AC ambulances once we move into the Confirm step,
-    // replacing the old separate "choose vehicle" step.
     async function loadAmbulances() {
         setLoadingAmbulances(true);
         try {
@@ -273,7 +263,6 @@ export default function AmbulanceRequest() {
                         padding: "48px 40px",
                     }}
                 >
-
                     {step < 3 && (
                         <button
                             onClick={() => (step === 0 ? navigate(-1) : setStep((s) => s - 1))}
@@ -293,7 +282,6 @@ export default function AmbulanceRequest() {
                             minHeight: "82vh",
                         }}
                     >
-
                         {step < 3 && <StepHeader step={step} driverName={driverName} />}
 
                         {/* Step 0: Pickup */}

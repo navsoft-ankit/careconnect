@@ -19,7 +19,6 @@ public class DoctorController : ControllerBase
         _context = context;
     }
 
-    // Replace these three methods in your existing DoctorController.cs
     [HttpPost("availability")]
     public IActionResult AddAvailability(CreateAvailabilityDto dto)
     {
@@ -65,7 +64,7 @@ public class DoctorController : ControllerBase
         if (overlap)
             return BadRequest("You already have a slot in this time range for this session.");
 
-        var availableFrom = session.Date.ToDateTime(dto.FromTime);   // session-er Date use hocche
+        var availableFrom = session.Date.ToDateTime(dto.FromTime);  
         var availableTo = session.Date.ToDateTime(dto.ToTime);
 
         var availability = new DoctorAvailability

@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   ClipboardList,
   Sparkles,
+  Newspaper,
 } from "lucide-react";
 
 const T = {
@@ -35,6 +36,7 @@ const LINKS = [
   { to: "/admin/product-orders", label: "Product Orders", icon: ShoppingBag },
   { to: "/admin/ambulance-bookings", label: "Ambulance Bookings", icon: ClipboardList },
   { to: "/admin/slot-requests", label: "Doctor Slot Requests", icon: Clock3 },
+  { to: "/admin/blogs", label: "Blogs", icon: Newspaper},
 ];
 
 export default function Sidebar() {

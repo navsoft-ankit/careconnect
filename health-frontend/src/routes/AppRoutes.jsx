@@ -17,6 +17,7 @@ import AmbulanceBookings from "../pages/admin/AmbulanceBookings";
 import Hospitals from "../pages/admin/Hospitals";
 import HospitalSessions from "../pages/admin/HospitalSessions";
 import AdminSlotRequests from "../pages/admin/AdminSlotRequests";
+import AdminBlogs from "../pages/admin/Blogs";
 
 // Doctor
 import DoctorDashboard from "../pages/doctor/Dashboard";
@@ -35,12 +36,15 @@ import AmbulanceBook from "../pages/patient/AmbulanceBook";
 import PatientDoctors from "../pages/patient/Doctors";
 import PatientOrders from "../pages/patient/Orders";
 import AboutUS from "../pages/patient/AboutUs";
+import ContactUs from "../pages/patient/Contacts";
 import LocationPage from "../pages/patient/Locations";
 import EmergencyInfos from "../pages/patient/EmergencyInfo";
 import PlaceOrders from "../pages/patient/Placeorder";
 import PatientAppointments from "../pages/patient/Appointments";
 import AmbulanceRequest from "../pages/patient/AmbulanceRequest";
 import RideStatus from "../pages/patient/RideStatus";
+import Blog from "../pages/patient/Blog";
+import BlogDetails from "../pages/patient/BlogDetails";
 
 // Ambulance Driver
 import AmbulanceDashboard from "../pages/ambulance/Dashboard";
@@ -70,6 +74,7 @@ export default function AppRoutes() {
         <Route path="/admin/hospitals" element={<Hospitals />} />
         <Route path="/admin/hospital-sessions" element={<HospitalSessions />} />
         <Route path="/admin/slot-requests" element={<AdminSlotRequests />} />
+        <Route path="/admin/blogs" element={<AdminBlogs />} />
 
 
         {/* DOCTOR */}
@@ -105,6 +110,12 @@ export default function AppRoutes() {
         <Route path="/patient/doctors" element={<PatientDoctors />} />
         <Route path="/patient/AboutUs" element={<AboutUS />} />
         <Route path="/patient/EmergencyInfo" element={<EmergencyInfos />} />
+        <Route path="/patient/Contacts" element={<ContactUs />} />
+        <Route path="/patient/EmergencyInfo" element={<EmergencyInfos />} />
+
+        {/* BLOG */}
+        <Route path="/patient/blog" element={<Blog />} />
+        <Route path="/patient/blog/:id" element={<BlogDetails />} />
 
         <Route
           path="/patient/orders"
