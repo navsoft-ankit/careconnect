@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Clock3,
   Truck,
+  Mail,
 } from "lucide-react";
 
 const T = {
@@ -36,6 +37,7 @@ const STATS = [
   { key: "totalOrders", label: "Orders", icon: ShoppingBag, accent: T.terra },
   { key: "pendingAppointments", label: "Pending Appointments", icon: Clock3, accent: "#DC2626" },
   { key: "pendingAmbulanceRequests", label: "Pending Ambulance", icon: Truck, accent: "#DC2626" },
+  { key: "totalMessages", label: "Contact Messages", icon: Mail, accent: T.green},
 ];
 
 function StatCard({ label, value, accent, icon: Icon }) {

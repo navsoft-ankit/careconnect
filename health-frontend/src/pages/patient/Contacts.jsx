@@ -207,7 +207,7 @@ export default function ContactUs() {
                                                 name="name"
                                                 value={form.name}
                                                 onChange={handleChange}
-                                                placeholder="Ankit Das"
+                                                placeholder="John Doe"
                                                 className={inputClass}
                                             />
                                         </Field>

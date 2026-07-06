@@ -18,6 +18,7 @@ import Hospitals from "../pages/admin/Hospitals";
 import HospitalSessions from "../pages/admin/HospitalSessions";
 import AdminSlotRequests from "../pages/admin/AdminSlotRequests";
 import AdminBlogs from "../pages/admin/Blogs";
+import AdminContactMessages from "../pages/admin/AdminContactMessages";
 
 // Doctor
 import DoctorDashboard from "../pages/doctor/Dashboard";
@@ -75,6 +76,7 @@ export default function AppRoutes() {
         <Route path="/admin/hospital-sessions" element={<HospitalSessions />} />
         <Route path="/admin/slot-requests" element={<AdminSlotRequests />} />
         <Route path="/admin/blogs" element={<AdminBlogs />} />
+        <Route path="/admin/contact-messages" element={<AdminContactMessages />} />
 
 
         {/* DOCTOR */}

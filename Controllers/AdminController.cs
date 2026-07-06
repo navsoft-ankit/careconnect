@@ -220,22 +220,15 @@ public class AdminController : ControllerBase
         var data = new
         {
             TotalPatients = _context.Users.Count(x => x.Role == "Patient"),
-
             TotalDoctors = _context.Doctors.Count(),
-
             TotalHospitals = _context.Hospitals.Count(),
-
             TotalAmbulances = _context.Ambulances.Count(),
-
             TotalProducts = _context.Products.Count(),
-
             TotalAppointments = _context.Appointments.Count(),
-
             TotalOrders = _context.Orders.Count(),
-
             PendingAppointments = _context.Appointments.Count(x => x.Status == "Pending"),
-
-            PendingAmbulanceRequests = _context.AmbulanceRequests.Count(x => x.Status == "Pending")
+            PendingAmbulanceRequests = _context.AmbulanceRequests.Count(x => x.Status == "Pending"),
+            totalMessages = _context.Contacts.Count()
         };
 
         return Ok(data);
@@ -418,7 +411,11 @@ public class AdminController : ControllerBase
             select new
             {
                 a.Id,
-                PatientName = p.FullName,
+
+                PatientName = string.IsNullOrWhiteSpace(a.PatientName)
+                    ? p.FullName
+                    : a.PatientName,
+
                 DoctorName = du.FullName,
                 a.Status,
                 BookedAt = a.BookedAt,
@@ -727,7 +724,7 @@ public class AdminController : ControllerBase
         await image.CopyToAsync(stream);
 
         product.ImageUrl = "/uploads/products/" + fileName;
-        
+
         _context.SaveChanges();
 
         return Ok(new
@@ -755,5 +752,52 @@ public class AdminController : ControllerBase
         _context.SaveChanges();
 
         return Ok(product);
+    }
+
+    [HttpGet("contact-messages")]
+    public IActionResult GetContactMessages()
+    {
+        var data = _context.Contacts
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new
+            {
+                x.Id,
+                x.Name,
+                x.Email,
+                x.Subject,
+                x.Message,
+                x.CreatedAt
+            })
+            .ToList();
+
+        return Ok(data);
+    }
+
+    [HttpDelete("contact-message/{id}")]
+    public IActionResult DeleteContactMessage(int id)
+    {
+        var msg = _context.Contacts.FirstOrDefault(x => x.Id == id);
+
+        if (msg == null)
+            return NotFound();
+
+        _context.Contacts.Remove(msg);
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            Message = "Deleted successfully"
+        });
+    }
+
+    [HttpGet("contact-message/{id}")]
+    public IActionResult GetContactMessage(int id)
+    {
+        var msg = _context.Contacts.FirstOrDefault(x => x.Id == id);
+
+        if (msg == null)
+            return NotFound();
+
+        return Ok(msg);
     }
 }

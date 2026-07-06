@@ -2,17 +2,82 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
+import {
+    Package, CheckCircle2, PackageCheck, Truck, PartyPopper,
+    Wallet, Ban, ShoppingBag,
+} from "lucide-react";
+
+/* ─── Design tokens ───────────────────────────────── */
+const T = {
+    cream: "#FAF8F3",
+    creamDark: "#EFEAE0",
+    green: "#16332B",
+    greenMid: "#3E7C59",
+    greenLight: "#EBF2E3",
+    terra: "#B5562C",
+    ink: "#16332B",
+    muted: "#6B7280",
+    border: "#E4DFD3",
+    white: "#FFFFFF",
+    danger: "#9E211A",
+    dangerLight: "#FBEAE5",
+};
+
+const STATUS_CFG = {
+    Pending: { bg: "#FEF9C3", text: "#854D0E", border: "#FDE68A" },
+    Confirmed: { bg: "#DBEAFE", text: "#1E40AF", border: "#BFDBFE" },
+    Packed: { bg: "#EDE9FE", text: "#6D28D9", border: "#DDD6FE" },
+    "Out for Delivery": { bg: "#FFEDD5", text: "#9A3412", border: "#FED7AA" },
+    Delivered: { bg: T.greenLight, text: T.greenMid, border: "#BBD9A0" },
+    Cancelled: { bg: T.dangerLight, text: T.danger, border: "#F5C6BB" },
+};
+
+function StatusBadge({ status }) {
+    const s = STATUS_CFG[status] || { bg: T.creamDark, text: T.muted, border: T.border };
+    return (
+        <span style={{
+            padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+            background: s.bg, color: s.text, border: `1px solid ${s.border}`, whiteSpace: "nowrap",
+        }}>
+            {status}
+        </span>
+    );
+}
+
+function ActionBtn({ label, icon, bg, fg, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: bg, color: fg, border: "none",
+                padding: "8px 14px", borderRadius: 8, fontWeight: 700, fontSize: 12,
+                cursor: "pointer", transition: "opacity .15s", whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = ".8"}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+        >
+            {icon} {label}
+        </button>
+    );
+}
 
 export default function ProductOrders() {
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         load();
     }, []);
 
     const load = async () => {
-        const res = await api.get("/admin/product-orders");
-        setOrders(res.data);
+        try {
+            setLoading(true);
+            const res = await api.get("/admin/product-orders");
+            setOrders(res.data);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const updateStatus = async (id, status) => {
@@ -20,29 +85,13 @@ export default function ProductOrders() {
             await api.put(
                 `/admin/product-order/${id}/status`,
                 JSON.stringify(status),
-                {
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                }
+                { headers: { "Content-Type": "application/json" } }
             );
-
-            // Reload latest data
             await load();
-
         } catch (err) {
             console.log(err);
             alert("Failed to update status");
         }
-    };
-
-    const STATUS = {
-        Pending: "bg-yellow-100 text-yellow-700",
-        Confirmed: "bg-blue-100 text-blue-700",
-        Packed: "bg-purple-100 text-purple-700",
-        "Out for Delivery": "bg-orange-100 text-orange-700",
-        Delivered: "bg-green-100 text-green-700",
-        Cancelled: "bg-red-100 text-red-700",
     };
 
     const markPayment = async (id) => {
@@ -50,124 +99,163 @@ export default function ProductOrders() {
         await load();
     };
 
+    const card = {
+        background: T.white, borderRadius: 20,
+        border: `1px solid ${T.border}`, boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+        overflow: "hidden",
+    };
+
     return (
-        <div className="flex">
+        <div className="flex" style={{ fontFamily: "Inter, sans-serif" }}>
             <Sidebar />
 
-            <div className="ml-64 w-full min-h-screen bg-gray-100">
+            <div className="ml-64 w-full min-h-screen" style={{ background: T.cream }}>
                 <Navbar />
 
-                <div className="p-6">
-                    <h2 className="text-3xl font-bold mb-6">
-                        Product Orders
-                    </h2>
-                    <div className="bg-white rounded shadow overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-blue-700 text-white">
+                <style>{`
+                    @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
+                    * { box-sizing: border-box; }
+                `}</style>
 
-                                <tr>
-                                    <th className="p-3">Customer</th>
-                                    <th className="p-3">Email</th>
-                                    <th className="p-3">Product</th>
-                                    <th className="p-3">Qty</th>
-                                    <th className="p-3">Price</th>
-                                    <th className="p-3">Total</th>
-                                    <th className="p-3">Status</th>
-                                    <th className="p-3">Date</th>
-                                </tr>
+                <div style={{ padding: 28 }}>
 
-                            </thead>
+                    {/* Header */}
+                    <div style={{ marginBottom: 28 }}>
+                        <h1 style={{ fontFamily: "Fraunces, serif", fontWeight: 900, fontSize: 28, margin: 0, color: T.ink }}>
+                            Product Orders
+                        </h1>
+                        <p style={{ fontSize: 14, color: T.muted, margin: "6px 0 0" }}>
+                            Track and fulfill medicine & pharmacy orders
+                        </p>
+                    </div>
 
-                            <tbody>
-                                {orders.map(o => (
-                                    <tr key={o.orderId} className="border-b">
+                    <div style={card}>
+                        <div style={{ padding: "18px 24px", borderBottom: `1px solid ${T.border}`, background: T.cream, display: "flex", alignItems: "center", gap: 8 }}>
+                            <Package size={17} color={T.green} />
+                            <span style={{ fontFamily: "Fraunces, serif", fontWeight: 700, fontSize: 17, color: T.ink }}>Order List</span>
+                        </div>
 
-                                        <td className="p-3">{o.customerName}</td>
-                                        <td className="p-3">{o.customerEmail}</td>
-                                        <td className="p-3">{o.productName}</td>
-                                        <td className="p-3">{o.quantity}</td>
-                                        <td className="p-3">₹{o.unitPrice}</td>
-                                        <td className="p-3">₹{o.total}</td>
-                                        <td className="p-3">
-                                            <div className="flex flex-col gap-2">
+                        <div style={{ overflowX: "auto" }}>
+                            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                                <thead>
+                                    <tr style={{ background: T.cream }}>
+                                        {["Customer", "Email", "Product", "Qty", "Price", "Total", "Status", "Payment", "Date"].map((h) => (
+                                            <th key={h} style={{ padding: "13px 20px", textAlign: "left", fontSize: 11, fontWeight: 700, color: T.muted, textTransform: "uppercase", letterSpacing: .6, whiteSpace: "nowrap" }}>
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
 
-                                                <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-semibold w-fit ${STATUS[o.status]}`}
-                                                >
-                                                    {o.status}
-                                                </span>
+                                <tbody>
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={9} style={{ textAlign: "center", padding: "56px 0", color: T.muted }}>
+                                                Loading orders…
+                                            </td>
+                                        </tr>
+                                    ) : orders.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={9} style={{ textAlign: "center", padding: "56px 0", color: T.muted }}>
+                                                <ShoppingBag size={44} style={{ opacity: .3, display: "block", margin: "0 auto 12px" }} />
+                                                No orders found.
+                                            </td>
+                                        </tr>
+                                    ) : orders.map((o) => (
+                                        <tr key={o.orderId} style={{ borderTop: `1px solid ${T.border}`, transition: "background .12s" }}
+                                            onMouseEnter={(e) => e.currentTarget.style.background = T.cream}
+                                            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                                        >
+                                            <td style={{ padding: "15px 20px", fontWeight: 700, color: T.ink }}>{o.customerName}</td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, color: T.muted }}>{o.customerEmail}</td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, color: T.ink }}>{o.productName}</td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, color: T.ink }}>{o.quantity}</td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, color: T.ink }}>₹{o.unitPrice}</td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, fontWeight: 700, color: T.ink }}>₹{o.total}</td>
+                                            <td style={{ padding: "15px 20px" }}>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                                                    <StatusBadge status={o.status} />
 
-                                                {o.status === "Pending" && (
-                                                    <button
-                                                        onClick={() => updateStatus(o.orderId, "Confirmed")}
-                                                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                                                    >
-                                                        ✓ Accept
-                                                    </button>
-                                                )}
-
-                                                {o.status === "Confirmed" && (
-                                                    <button
-                                                        onClick={() => updateStatus(o.orderId, "Packed")}
-                                                        className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded"
-                                                    >
-                                                        📦 Pack
-                                                    </button>
-                                                )}
-
-                                                {o.status === "Packed" && (
-                                                    <button
-                                                        onClick={() => updateStatus(o.orderId, "Out for Delivery")}
-                                                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
-                                                    >
-                                                        🚚 Dispatch
-                                                    </button>
-                                                )}
-
-                                                {o.status === "Out for Delivery" && (
-                                                    <button
-                                                        onClick={() => updateStatus(o.orderId, "Delivered")}
-                                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                                                    >
-                                                        ✅ Deliver
-                                                    </button>
-                                                )}
-                                                {o.status === "Delivered" && o.paymentStatus !== "Paid" && (
-                                                    <button
-                                                        onClick={() => markPayment(o.orderId)}
-                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded"
-                                                    >
-                                                        💳 Payment Received
-                                                    </button>
-                                                )}
-                                                {o.status === "Delivered" && o.paymentStatus === "Paid" && (
-                                                    <span className="text-green-600 font-bold">
-                                                        ✔ Completed
+                                                    {o.status === "Pending" && (
+                                                        <ActionBtn
+                                                            label="Accept"
+                                                            icon={<CheckCircle2 size={13} />}
+                                                            bg="#DBEAFE" fg="#1E40AF"
+                                                            onClick={() => updateStatus(o.orderId, "Confirmed")}
+                                                        />
+                                                    )}
+                                                    {o.status === "Confirmed" && (
+                                                        <ActionBtn
+                                                            label="Pack"
+                                                            icon={<PackageCheck size={13} />}
+                                                            bg="#EDE9FE" fg="#6D28D9"
+                                                            onClick={() => updateStatus(o.orderId, "Packed")}
+                                                        />
+                                                    )}
+                                                    {o.status === "Packed" && (
+                                                        <ActionBtn
+                                                            label="Dispatch"
+                                                            icon={<Truck size={13} />}
+                                                            bg="#FFEDD5" fg="#9A3412"
+                                                            onClick={() => updateStatus(o.orderId, "Out for Delivery")}
+                                                        />
+                                                    )}
+                                                    {o.status === "Out for Delivery" && (
+                                                        <ActionBtn
+                                                            label="Deliver"
+                                                            icon={<PartyPopper size={13} />}
+                                                            bg={T.greenLight} fg={T.greenMid}
+                                                            onClick={() => updateStatus(o.orderId, "Delivered")}
+                                                        />
+                                                    )}
+                                                    {o.status === "Delivered" && o.paymentStatus !== "Paid" && (
+                                                        <ActionBtn
+                                                            label="Payment Received"
+                                                            icon={<Wallet size={13} />}
+                                                            bg={T.greenLight} fg={T.greenMid}
+                                                            onClick={() => markPayment(o.orderId)}
+                                                        />
+                                                    )}
+                                                    {o.status === "Delivered" && o.paymentStatus === "Paid" && (
+                                                        <span style={{ color: T.greenMid, fontWeight: 700, fontSize: 12 }}>
+                                                            ✔ Completed
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td style={{ padding: "15px 20px" }}>
+                                                {o.paymentStatus === "Paid" ? (
+                                                    <span style={{
+                                                        display: "inline-flex", alignItems: "center", gap: 5,
+                                                        background: T.greenLight, color: T.greenMid,
+                                                        padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+                                                    }}>
+                                                        <CheckCircle2 size={12} /> Paid
+                                                    </span>
+                                                ) : (
+                                                    <span style={{
+                                                        display: "inline-flex", alignItems: "center", gap: 5,
+                                                        background: T.dangerLight, color: T.danger,
+                                                        padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+                                                    }}>
+                                                        <Ban size={12} /> Pending
                                                     </span>
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {o.paymentStatus === "Paid" ? (
-                                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                    ✅ Paid
-                                                </span>
-                                            ) : (
-                                                <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-semibold">
-                                                    Pending
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="p-3">
-                                            {new Date(o.orderDate).toLocaleString()}
-                                        </td>
+                                            </td>
+                                            <td style={{ padding: "15px 20px", fontSize: 13, color: T.ink, whiteSpace: "nowrap" }}>
+                                                {new Date(o.orderDate).toLocaleString()}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                                    </tr>
-
-                                ))}
-
-                            </tbody>
-                        </table>
+                        <div style={{ padding: "14px 24px", borderTop: `1px solid ${T.border}`, background: T.cream }}>
+                            <span style={{ fontSize: 12, color: T.muted }}>
+                                Showing <b style={{ color: T.ink }}>{orders.length}</b> order{orders.length !== 1 ? "s" : ""}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

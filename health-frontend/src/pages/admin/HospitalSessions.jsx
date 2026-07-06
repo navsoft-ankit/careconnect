@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
+
 import {
   Building2,
   Clock3,
@@ -273,6 +276,7 @@ async function cancelSession(id) {
         *{box-sizing:border-box;}
         @keyframes spin{to{transform:rotate(360deg)}}
       `}</style>
+      
 
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 14 }}>

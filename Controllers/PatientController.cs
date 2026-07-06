@@ -705,4 +705,25 @@ public class PatientController : ControllerBase
 
         return Ok(ride);
     }
+
+    [HttpPost("contact")]
+    public IActionResult Contact(ContactDto dto)
+    {
+        var contact = new ContactMessage
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            Subject = dto.Subject,
+            Message = dto.Message,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Contacts.Add(contact);
+        _context.SaveChanges();
+
+        return Ok(new
+        {
+            message = "Message sent successfully."
+        });
+    }
 }

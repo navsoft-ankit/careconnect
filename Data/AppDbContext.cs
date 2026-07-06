@@ -23,6 +23,7 @@ namespace HEALTHCARE.Data
         public DbSet<HospitalLocation> HospitalLocations { get; set; }
         public DbSet<Prescription> Prescriptions { get; set; }
         public DbSet<Blog> Blogs { get; set; }
+        public DbSet<ContactMessage> Contacts {get; set;}
         public DbSet<Hospital> Hospitals => Set<Hospital>();
         public DbSet<HospitalSession> HospitalSessions => Set<HospitalSession>();
         public DbSet<DoctorSlotRequest> DoctorSlotRequests => Set<DoctorSlotRequest>();
