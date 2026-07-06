@@ -257,29 +257,29 @@ export default function AdminHospitalSessions() {
 
   if (loading) {
     return (
-      <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                height: "60vh", 
-                background: T.cream 
-              }}>
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "60vh",
+        background: T.cream
+      }}>
         <div>
 
-          <div style={{ 
-                    width: 44, 
-                    height: 44, 
-                    border: `3px solid ${T.green}`, 
-                    borderTopColor: "transparent", 
-                    borderRadius: "50%", 
-                    animation: "spin 1s linear infinite", 
-                    margin: "0 auto 16px" 
-                  }} />
+          <div style={{
+            width: 44,
+            height: 44,
+            border: `3px solid ${T.green}`,
+            borderTopColor: "transparent",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 16px"
+          }} />
 
-          <p style={{ 
-                    color: T.muted, 
-                    fontSize: 14 
-                    }}>Loading hospitals & sessions…
+          <p style={{
+            color: T.muted,
+            fontSize: 14
+          }}>Loading hospitals & sessions…
           </p>
         </div>
 
@@ -290,22 +290,22 @@ export default function AdminHospitalSessions() {
     );
   }
 
-  const card = { 
-            background: T.white, 
-            borderRadius: 20, 
-            border: `1px solid ${T.border}`, 
-            boxShadow: "0 2px 8px rgba(0,0,0,.04)", 
-            overflow: "hidden" 
-          };
+  const card = {
+    background: T.white,
+    borderRadius: 20,
+    border: `1px solid ${T.border}`,
+    boxShadow: "0 2px 8px rgba(0,0,0,.04)",
+    overflow: "hidden"
+  };
 
   return (
-    <div style={{ 
-              minHeight: "100vh", 
-              background: T.cream, 
-              padding: 28, 
-              fontFamily: "Inter, sans-serif", 
-              color: T.ink 
-            }}>
+    <div style={{
+      minHeight: "100vh",
+      background: T.cream,
+      padding: 28,
+      fontFamily: "Inter, sans-serif",
+      color: T.ink
+    }}>
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=Inter:wght@400;500;600;700&display=swap');
@@ -315,40 +315,40 @@ export default function AdminHospitalSessions() {
 
 
       {/* Header */}
-      <div style={{ 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "flex-start", 
-                marginBottom: 24, 
-                flexWrap: "wrap", 
-                gap: 14 
-              }}>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 24,
+        flexWrap: "wrap",
+        gap: 14
+      }}>
         <div>
-          <h1 style={{ 
-                  fontFamily: "Fraunces, serif", 
-                  fontWeight: 900, 
-                  fontSize: 28, 
-                  margin: 0, 
-                  color: T.ink 
-                }}>Hospitals & Sessions
+          <h1 style={{
+            fontFamily: "Fraunces, serif",
+            fontWeight: 900,
+            fontSize: 28,
+            margin: 0,
+            color: T.ink
+          }}>Hospitals & Sessions
           </h1>
 
-          <p style={{ 
-                  fontSize: 14, 
-                  color: T.muted, 
-                  margin: "6px 0 0" 
-                }}>
+          <p style={{
+            fontSize: 14,
+            color: T.muted,
+            margin: "6px 0 0"
+          }}>
             Define the hospitals and fixed time windows doctors are allowed to pick from.
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={{ 
-                display: "flex", 
-                gap: 8, 
-                marginBottom: 20 
-              }}>
+      <div style={{
+        display: "flex",
+        gap: 8,
+        marginBottom: 20
+      }}>
         {[
           { id: "hospitals", label: "Hospitals", icon: Building2 },
           { id: "sessions", label: "Time Slots", icon: Clock3 },
@@ -382,73 +382,73 @@ export default function AdminHospitalSessions() {
       {/* HOSPITALS TAB */}
       {tab === "hospitals" && (
         <div style={card}>
-          <div style={{ 
-                    padding: "18px 24px", 
-                    borderBottom: `1px solid ${T.border}`, 
-                    background: T.cream, 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center", 
-                    flexWrap: "wrap", 
-                    gap: 12 
-                  }}>
+          <div style={{
+            padding: "18px 24px",
+            borderBottom: `1px solid ${T.border}`,
+            background: T.cream,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12
+          }}>
 
-            <div style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 8 
-                    }}>
-                      
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8
+            }}>
+
               <Building2 size={17} color={T.green} />
-              <span style={{ 
-                        fontFamily: "Fraunces, serif", 
-                        fontWeight: 700, 
-                        fontSize: 17, 
-                        color: T.ink 
-                        }}>Hospitals
+              <span style={{
+                fontFamily: "Fraunces, serif",
+                fontWeight: 700,
+                fontSize: 17,
+                color: T.ink
+              }}>Hospitals
               </span>
 
             </div>
             <button
               onClick={openAddHospital}
-              style={{ 
-                  display: "flex", 
-                  alignItems: "center", 
-                  gap: 8, 
-                  background: T.terra, 
-                  color: T.white, 
-                  border: "none", 
-                  borderRadius: 12, 
-                  padding: "10px 18px", 
-                  fontWeight: 700, 
-                  fontSize: 13.5, 
-                  cursor: "pointer" 
-                }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: T.terra,
+                color: T.white,
+                border: "none",
+                borderRadius: 12,
+                padding: "10px 18px",
+                fontWeight: 700,
+                fontSize: 13.5,
+                cursor: "pointer"
+              }}
             >
               <Plus size={15} /> Add Hospital
             </button>
           </div>
 
           <div style={{ overflowX: "auto" }}>
-            <table style={{ 
-                      width: "100%", 
-                      borderCollapse: "collapse" 
-                    }}>
+            <table style={{
+              width: "100%",
+              borderCollapse: "collapse"
+            }}>
 
               <thead>
                 <tr style={{ background: T.cream }}>
                   {["Hospital", "Location", "Phone", "Sessions", "Actions"].map((h) => (
-                    <th key={h} 
-                      style={{ 
-                          padding: "13px 20px", 
-                          textAlign: "left", 
-                          fontSize: 11, 
-                          fontWeight: 700, 
-                          color: T.muted, 
-                          textTransform: "uppercase", 
-                          letterSpacing: 0.6, 
-                          whiteSpace: "nowrap"
-                        }}>
+                    <th key={h}
+                      style={{
+                        padding: "13px 20px",
+                        textAlign: "left",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: T.muted,
+                        textTransform: "uppercase",
+                        letterSpacing: 0.6,
+                        whiteSpace: "nowrap"
+                      }}>
                       {h}
                     </th>
                   ))}
@@ -457,19 +457,19 @@ export default function AdminHospitalSessions() {
               <tbody>
                 {hospitals.length === 0 ? (
                   <tr>
-                    <td colSpan={5} 
-                      style={{ 
-                          textAlign: "center", 
-                          padding: "56px 0", 
-                          color: T.muted 
-                        }}>
+                    <td colSpan={5}
+                      style={{
+                        textAlign: "center",
+                        padding: "56px 0",
+                        color: T.muted
+                      }}>
 
-                      <Building2 size={44} 
-                        style={{ 
-                            opacity: 0.3, 
-                            display: "block", 
-                            margin: "0 auto 12px" 
-                          }} />
+                      <Building2 size={44}
+                        style={{
+                          opacity: 0.3,
+                          display: "block",
+                          margin: "0 auto 12px"
+                        }} />
 
                       No hospitals yet. Add your first hospital.
                     </td>
@@ -480,40 +480,40 @@ export default function AdminHospitalSessions() {
                     return (
                       <tr key={h.id} style={{ borderTop: `1px solid ${T.border}` }}>
 
-                        <td style={{ 
-                                padding: "15px 20px", 
-                                fontWeight: 700, 
-                                color: T.ink 
-                                }}>
-                                  {h.name}
+                        <td style={{
+                          padding: "15px 20px",
+                          fontWeight: 700,
+                          color: T.ink
+                        }}>
+                          {h.name}
                         </td>
 
-                        <td style={{ 
-                                padding: "15px 20px", 
-                                fontSize: 13, 
-                                color: T.muted 
+                        <td style={{
+                          padding: "15px 20px",
+                          fontSize: 13,
+                          color: T.muted
                         }}>
 
-                          <div style={{ 
-                                   display: "flex", 
-                                   alignItems: "center", 
-                                   gap: 6 
+                          <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6
                           }}>
 
                             <MapPin size={13} /> {[h.address, h.city].filter(Boolean).join(", ") || "—"}
                           </div>
                         </td>
 
-                        <td style={{ 
-                            padding: "15px 20px", 
-                            fontSize: 13, 
-                            color: T.muted 
-                          }}>
+                        <td style={{
+                          padding: "15px 20px",
+                          fontSize: 13,
+                          color: T.muted
+                        }}>
 
-                          <div style={{ 
-                              display: "flex", 
-                              alignItems: "center", 
-                              gap: 6 
+                          <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6
                           }}>
 
                             <Phone size={13} /> {h.phone || "—"}
@@ -521,15 +521,15 @@ export default function AdminHospitalSessions() {
                         </td>
 
                         <td style={{ padding: "15px 20px" }}>
-                          <span style={{ 
-                                    padding: "4px 12px", 
-                                    borderRadius: 99, 
-                                    fontSize: 12, 
-                                    fontWeight: 700, 
-                                    background: T.greenLight, 
-                                    color: T.green, 
-                                    border: "1px solid #BBD9A0" 
-                                  }}>
+                          <span style={{
+                            padding: "4px 12px",
+                            borderRadius: 99,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            background: T.greenLight,
+                            color: T.green,
+                            border: "1px solid #BBD9A0"
+                          }}>
                             {count} slot{count === 1 ? "" : "s"}
                           </span>
                         </td>
@@ -539,53 +539,53 @@ export default function AdminHospitalSessions() {
                             <button
                               onClick={() => openAddSession(h.id)}
                               title="Add time slot for this hospital"
-                              style={{ 
-                                  padding: "6px 12px", 
-                                  borderRadius: 8, 
-                                  border: "none", 
-                                  cursor: "pointer", 
-                                  background: T.terraLight, 
-                                  color: T.terra, 
-                                  fontSize: 12, 
-                                  fontWeight: 700, 
-                                  display: "flex", 
-                                  alignItems: "center", 
-                                  gap: 5 
-                                }}
+                              style={{
+                                padding: "6px 12px",
+                                borderRadius: 8,
+                                border: "none",
+                                cursor: "pointer",
+                                background: T.terraLight,
+                                color: T.terra,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 5
+                              }}
                             >
                               <Plus size={13} /> Slot
                             </button>
                             <button
                               onClick={() => openEditHospital(h)}
-                              style={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  borderRadius: 8, 
-                                  border: "none", 
-                                  cursor: "pointer", 
-                                  background: T.greenLight, 
-                                  color: T.green, 
-                                  display: "flex", 
-                                  alignItems: "center", 
-                                  justifyContent: "center" 
-                                }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 8,
+                                border: "none",
+                                cursor: "pointer",
+                                background: T.greenLight,
+                                color: T.green,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
                             >
                               <Edit2 size={14} />
                             </button>
                             <button
                               onClick={() => deleteHospital(h.id)}
-                              style={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  borderRadius: 8, 
-                                  border: "none", 
-                                  cursor: "pointer", 
-                                  background: "#FEE2E2", 
-                                  color: "#DC2626", 
-                                  display: "flex", 
-                                  alignItems: "center", 
-                                  justifyContent: "center" 
-                                }}
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 8,
+                                border: "none",
+                                cursor: "pointer",
+                                background: "#FEE2E2",
+                                color: "#DC2626",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                              }}
                             >
                               <Trash2 size={14} />
                             </button>
@@ -601,7 +601,7 @@ export default function AdminHospitalSessions() {
               </tbody>
 
             </table>
-            
+
           </div>
         </div>
       )}
@@ -671,11 +671,11 @@ export default function AdminHospitalSessions() {
                           })}
                         </div>
                       </td>
-                      <td style={{ 
-                              padding: "15px 20px", 
-                              fontSize: 13.5, 
-                              color: T.ink 
-                            }}>
+                      <td style={{
+                        padding: "15px 20px",
+                        fontSize: 13.5,
+                        color: T.ink
+                      }}>
 
                         {to12h(s.startTime)} – {to12h(s.endTime)}
                       </td>
@@ -718,18 +718,18 @@ export default function AdminHospitalSessions() {
                             title={s.isActive ? "Deactivate" : "Activate"}
 
                             style={{
-                                width: 32, 
-                                height: 32, 
-                                borderRadius: 8, 
-                                border: "none", 
-                                cursor: "pointer", 
-                                background: s.isActive ? "#FEE2E2" : T.greenLight, 
-                                color: s.isActive ? "#DC2626" : T.green, 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center", 
-                                opacity: s.isExpired ? .5 : 1,
-                                cursor: s.isExpired ? "not-allowed" : "pointer",
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              background: s.isActive ? "#FEE2E2" : T.greenLight,
+                              color: s.isActive ? "#DC2626" : T.green,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              opacity: s.isExpired ? .5 : 1,
+                              cursor: s.isExpired ? "not-allowed" : "pointer",
                             }}
                           >
                             <Power size={14} />
@@ -739,18 +739,18 @@ export default function AdminHospitalSessions() {
                             disabled={s.isExpired}
                             onClick={() => openEditSession(s)}
                             style={{
-                                width: 32, 
-                                height: 32, 
-                                borderRadius: 8, 
-                                border: "none", 
-                                cursor: "pointer", 
-                                background: T.greenLight, 
-                                color: T.green, 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center", 
-                                opacity: s.isExpired ? .5 : 1,
-                                cursor: s.isExpired ? "not-allowed" : "pointer",
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              background: T.greenLight,
+                              color: T.green,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              opacity: s.isExpired ? .5 : 1,
+                              cursor: s.isExpired ? "not-allowed" : "pointer",
                             }}
                           >
                             <Edit2 size={14} />
@@ -761,18 +761,18 @@ export default function AdminHospitalSessions() {
                                 ? cancelSession(s.id)
                                 : deleteSession(s.id)
                             }
-                            style={{ 
-                                width: 32, 
-                                height: 32, 
-                                borderRadius: 8, 
-                                border: "none", 
-                                cursor: "pointer", 
-                                background: "#FEE2E2", 
-                                color: "#DC2626", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center" 
-                              }}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              border: "none",
+                              cursor: "pointer",
+                              background: "#FEE2E2",
+                              color: "#DC2626",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center"
+                            }}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -789,66 +789,66 @@ export default function AdminHospitalSessions() {
 
       {/* Hospital modal */}
       {showHospitalModal && (
-        <Modal title={editingHospital ? "Edit Hospital" : "Add Hospital"} 
+        <Modal title={editingHospital ? "Edit Hospital" : "Add Hospital"}
           onClose={() => setShowHospitalModal(false)}
         >
 
-          <LabeledInput 
-            label="Hospital Name" 
-            value={hospitalForm.name} 
-            onChange={(e) => setHospitalForm({ ...hospitalForm, name: e.target.value })} 
-            placeholder="e.g. ABC Hospital" 
+          <LabeledInput
+            label="Hospital Name"
+            value={hospitalForm.name}
+            onChange={(e) => setHospitalForm({ ...hospitalForm, name: e.target.value })}
+            placeholder="e.g. ABC Hospital"
           />
 
-          <LabeledInput 
-            label="Address" 
-            value={hospitalForm.address} 
-            onChange={(e) => setHospitalForm({ ...hospitalForm, address: e.target.value })} 
-            placeholder="Street address" 
+          <LabeledInput
+            label="Address"
+            value={hospitalForm.address}
+            onChange={(e) => setHospitalForm({ ...hospitalForm, address: e.target.value })}
+            placeholder="Street address"
           />
 
-          <LabeledInput 
-            label="City" 
-            value={hospitalForm.city} 
-            onChange={(e) => setHospitalForm({ ...hospitalForm, city: e.target.value })} 
-            placeholder="City" 
+          <LabeledInput
+            label="City"
+            value={hospitalForm.city}
+            onChange={(e) => setHospitalForm({ ...hospitalForm, city: e.target.value })}
+            placeholder="City"
           />
 
-          <LabeledInput 
-            label="Phone" 
-            value={hospitalForm.phone} 
-            onChange={(e) => setHospitalForm({ ...hospitalForm, phone: e.target.value })} 
-            placeholder="Contact number" 
+          <LabeledInput
+            label="Phone"
+            value={hospitalForm.phone}
+            onChange={(e) => setHospitalForm({ ...hospitalForm, phone: e.target.value })}
+            placeholder="Contact number"
           />
 
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-            <button onClick={() => setShowHospitalModal(false)} 
-              style={{ 
-                  flex: 1, 
-                  padding: "11px 0", 
-                  borderRadius: 10, 
-                  border: `1px solid ${T.border}`, 
-                  background: T.cream, 
-                  color: T.ink, 
-                  fontWeight: 600, 
-                  fontSize: 14, 
-                  cursor: "pointer" 
-                }}>
-                  
-                Cancel
+            <button onClick={() => setShowHospitalModal(false)}
+              style={{
+                flex: 1,
+                padding: "11px 0",
+                borderRadius: 10,
+                border: `1px solid ${T.border}`,
+                background: T.cream,
+                color: T.ink,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer"
+              }}>
+
+              Cancel
             </button>
-            <button onClick={saveHospital} 
-              style={{ 
-                  flex: 1, 
-                  padding: "11px 0", 
-                  borderRadius: 10, 
-                  border: "none", 
-                  background: T.green, 
-                  color: T.white, 
-                  fontWeight: 700, 
-                  fontSize: 14, 
-                  cursor: "pointer" 
-                }}>
+            <button onClick={saveHospital}
+              style={{
+                flex: 1,
+                padding: "11px 0",
+                borderRadius: 10,
+                border: "none",
+                background: T.green,
+                color: T.white,
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer"
+              }}>
               {editingHospital ? "Save Changes" : "Add Hospital"}
             </button>
           </div>
@@ -857,13 +857,13 @@ export default function AdminHospitalSessions() {
 
       {/* Session modal */}
       {showSessionModal && (
-        <Modal title={editingSession ? "Edit Time Slot" : "Add Time Slot"} 
+        <Modal title={editingSession ? "Edit Time Slot" : "Add Time Slot"}
           onClose={() => setShowSessionModal(false)}
         >
 
-          <LabeledSelect 
-            label="Hospital" 
-            value={sessionForm.hospitalId} 
+          <LabeledSelect
+            label="Hospital"
+            value={sessionForm.hospitalId}
             onChange={(e) => setSessionForm({ ...sessionForm, hospitalId: e.target.value })}
           >
             <option value="">Select Hospital</option>
@@ -874,34 +874,34 @@ export default function AdminHospitalSessions() {
             ))}
           </LabeledSelect>
 
-          <LabeledSelect label="Day" 
-            value={sessionForm.day} 
+          <LabeledSelect label="Day"
+            value={sessionForm.day}
             onChange={(e) => setSessionForm({ ...sessionForm, day: e.target.value })}
-            >
-              {DAYS.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
+          >
+            {DAYS.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
           </LabeledSelect>
 
           <div style={{ display: "flex", gap: 12 }}>
-            <div style={{ 
-                      flex: 1 
-                    }}>
+            <div style={{
+              flex: 1
+            }}>
 
-              <LabeledInput label="Start Time" type="time" 
-              value={sessionForm.startTime} 
-              onChange={(e) => 
-                setSessionForm({ ...sessionForm, startTime: e.target.value })} 
+              <LabeledInput label="Start Time" type="time"
+                value={sessionForm.startTime}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, startTime: e.target.value })}
               />
             </div>
 
             <div style={{ flex: 1 }}>
-              <LabeledInput label="End Time" type="time" 
-              value={sessionForm.endTime} 
-              onChange={(e) => 
-                setSessionForm({ ...sessionForm, endTime: e.target.value })} 
+              <LabeledInput label="End Time" type="time"
+                value={sessionForm.endTime}
+                onChange={(e) =>
+                  setSessionForm({ ...sessionForm, endTime: e.target.value })}
               />
             </div>
 
@@ -920,49 +920,49 @@ export default function AdminHospitalSessions() {
             </div>
           </div>
 
-          <p style={{ 
-                 fontSize: 11.5, 
-                 color: T.muted, 
-                 margin: "-6px 0 16px" 
-                }}>
+          <p style={{
+            fontSize: 11.5,
+            color: T.muted,
+            margin: "-6px 0 16px"
+          }}>
 
             Doctors picking "{hospitals.find((h) => h.id == sessionForm.hospitalId)?.name || "this hospital"}" will only be able to choose this exact window — they can't set their own time.
           </p>
 
-          <div style={{ 
-                   display: "flex", 
-                   gap: 10, 
-                   marginTop: 8 
-                  }}>
+          <div style={{
+            display: "flex",
+            gap: 10,
+            marginTop: 8
+          }}>
 
-            <button onClick={() => setShowSessionModal(false)} 
-              style={{ 
-                  flex: 1, 
-                  padding: "11px 0", 
-                  borderRadius: 10, 
-                  border: `1px solid ${T.border}`, 
-                  background: T.cream, 
-                  color: T.ink, 
-                  fontWeight: 600, 
-                  fontSize: 14, 
-                  cursor: "pointer" 
-                }}>
+            <button onClick={() => setShowSessionModal(false)}
+              style={{
+                flex: 1,
+                padding: "11px 0",
+                borderRadius: 10,
+                border: `1px solid ${T.border}`,
+                background: T.cream,
+                color: T.ink,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer"
+              }}>
 
               Cancel
             </button>
 
-            <button onClick={saveSession} 
-                style={{ 
-                    flex: 1, 
-                    padding: "11px 0", 
-                    borderRadius: 10, 
-                    border: "none", 
-                    background: T.terra, 
-                    color: T.white, 
-                    fontWeight: 700, 
-                    fontSize: 14, 
-                    cursor: "pointer" 
-                  }}>
+            <button onClick={saveSession}
+              style={{
+                flex: 1,
+                padding: "11px 0",
+                borderRadius: 10,
+                border: "none",
+                background: T.terra,
+                color: T.white,
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer"
+              }}>
 
               {editingSession ? "Save Changes" : "Add Slot"}
             </button>
