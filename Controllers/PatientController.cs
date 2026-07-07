@@ -41,10 +41,28 @@ public class PatientController : ControllerBase
     [HttpGet("doctor/{doctorId}/slots")]
     public IActionResult GetDoctorSlots(int doctorId)
     {
+        var now = DateTime.Now;
+
+        var expiredSlots = _context.DoctorAvailabilities
+            .Where(x => x.IsActive && x.AvailableTo < now)
+            .ToList();
+
+        if (expiredSlots.Any())
+        {
+            foreach (var slot in expiredSlots)
+            {
+                slot.IsActive = false;
+            }
+
+            _context.SaveChanges();
+        }
+
         var slots = _context.DoctorAvailabilities
-            .Where(x =>
-                x.DoctorId == doctorId &&
-                !x.IsBooked)   // IsBooked now means "fully booked" — excludes only full slots
+    .Where(x =>
+        x.DoctorId == doctorId &&
+        x.IsActive &&
+        !x.IsBooked &&
+        x.AvailableFrom >= now)
             .OrderBy(x => x.AvailableFrom)
             .Select(x => new
             {
@@ -57,6 +75,7 @@ public class PatientController : ControllerBase
                 SeatsLeft = x.MaxPatients - x.BookedCount
             })
             .ToList();
+
         return Ok(slots);
     }
 
@@ -793,5 +812,72 @@ public class PatientController : ControllerBase
             .ToList();
 
         return Ok(reviews);
+    }
+
+    [HttpGet("doctor/{id}")]
+    public IActionResult GetDoctor(int id)
+    {
+        var doctor = _context.Doctors
+            .Include(x => x.User)
+            .Where(x => x.Id == id)
+            .Select(x => new
+            {
+                x.Id,
+                Name = x.User.FullName,
+                Email = x.User.Email,
+                Phone = x.Phone,
+                x.Specialization,
+                x.Qualification,
+                x.Experience,
+                x.HospitalName,
+                x.Fee,
+                x.About,
+                ImageUrl = x.ImageUrl
+            })
+            .FirstOrDefault();
+
+        if (doctor == null)
+            return NotFound();
+
+        return Ok(doctor);
+    }
+
+    [Authorize(Roles = "Patient")]
+    [HttpGet("appointment/{id}")]
+    public IActionResult GetAppointment(int id)
+    {
+        var userId = int.Parse(
+            User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var appointment =
+            (from a in _context.Appointments
+             join d in _context.Doctors
+                on a.DoctorId equals d.Id
+             join s in _context.DoctorAvailabilities
+                on a.DoctorAvailabilityId equals s.Id
+             where a.Id == id &&
+                   a.PatientId == userId
+             select new
+             {
+                 a.Id,
+                 a.Status,
+                 a.PaymentStatus,
+                 a.AdvanceAmount,
+                 a.IsReviewed,
+
+                 AppointmentDate = s.AvailableFrom,
+                 AppointmentTime = s.AvailableFrom,
+
+                 Place = s.Place,
+
+                 DoctorId = d.Id,
+                 d.HospitalName
+             })
+            .FirstOrDefault();
+
+        if (appointment == null)
+            return NotFound();
+
+        return Ok(appointment);
     }
 }

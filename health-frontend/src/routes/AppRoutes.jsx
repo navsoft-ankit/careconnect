@@ -46,6 +46,9 @@ import AmbulanceRequest from "../pages/patient/AmbulanceRequest";
 import RideStatus from "../pages/patient/RideStatus";
 import Blog from "../pages/patient/Blog";
 import BlogDetails from "../pages/patient/BlogDetails";
+import DoctorDetails from "../pages/patient/DoctorDetails";
+import AppointmentDetail from "../pages/patient/Appointmentdetail";
+
 
 // Ambulance Driver
 import AmbulanceDashboard from "../pages/ambulance/Dashboard";
@@ -160,6 +163,24 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <RideStatus />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/patient/doctors/:id"
+          element={
+            <ProtectedRoute>
+              <DoctorDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/patient/appointments/:id"
+          element={
+            <ProtectedRoute>
+              <AppointmentDetail />
             </ProtectedRoute>
           }
         />

@@ -31,7 +31,12 @@ function normalizeSpecialization(value) {
 // Some doctor names already include "Dr." — avoids "Dr. Dr. Ananya Sen".
 function displayDoctorName(name) {
     if (!name) return "";
-    return /^dr\.?\s/i.test(name) ? name : `Dr. ${name}`;
+
+    const cleanName = name
+        .replace(/^(dr\.?\s*)+/i, "") // যতগুলো Dr. আছে সব remove
+        .trim();
+
+    return `Dr. ${cleanName}`;
 }
 
 function CardSkeleton() {
@@ -214,10 +219,11 @@ export default function Doctors() {
                 {!loading && filteredDoctors.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {filteredDoctors.map((doc) => (
-                            <div
-                                key={doc.id}
-                                className="group bg-white rounded-[24px] overflow-hidden border border-[#E4DFD3] hover:border-[#16332B]/25 hover:shadow-[0_25px_50px_-25px_rgba(22,51,43,0.25)] transition-all duration-300 flex flex-col"
-                            >
+                           <div
+    key={doc.id}
+    onClick={() => navigate(`/patient/doctors/${doc.id}`)}
+    className="group cursor-pointer bg-white rounded-[24px] overflow-hidden border border-[#E4DFD3] hover:border-[#16332B]/25 hover:shadow-[0_25px_50px_-25px_rgba(22,51,43,0.25)] transition-all duration-300 flex flex-col"
+>
                                 <div className="relative h-60 bg-gradient-to-b from-[#EFEAE0] to-[#E4DFD3] flex items-center justify-center overflow-hidden">
                                     {doc.imageUrl ? (
                                         <img
