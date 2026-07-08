@@ -23,7 +23,6 @@ namespace HEALTHCARE.Controllers
         // ───────────────────────── PATIENT (public read) ─────────────────────────
 
         // GET /api/patient/blogs
-        // GET /api/patient/blogs?category=Nutrition&search=heart
         [HttpGet("api/patient/blogs")]
         public async Task<IActionResult> GetBlogs([FromQuery] string? category, [FromQuery] string? search)
         {
@@ -135,9 +134,7 @@ namespace HEALTHCARE.Controllers
                     Directory.CreateDirectory(folder);
 
                 var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
-
                 var fullPath = Path.Combine(folder, fileName);
-
                 using var stream = new FileStream(fullPath, FileMode.Create);
 
                 await dto.Image.CopyToAsync(stream);
@@ -196,9 +193,7 @@ namespace HEALTHCARE.Controllers
                     Directory.CreateDirectory(folder);
 
                 var fileName = Guid.NewGuid() + Path.GetExtension(dto.Image.FileName);
-
                 var fullPath = Path.Combine(folder, fileName);
-
                 using var stream = new FileStream(fullPath, FileMode.Create);
 
                 await dto.Image.CopyToAsync(stream);

@@ -37,7 +37,7 @@ const STATS = [
   { key: "totalOrders", label: "Orders", icon: ShoppingBag, accent: T.terra },
   { key: "pendingAppointments", label: "Pending Appointments", icon: Clock3, accent: "#DC2626" },
   { key: "pendingAmbulanceRequests", label: "Pending Ambulance", icon: Truck, accent: "#DC2626" },
-  { key: "totalMessages", label: "Contact Messages", icon: Mail, accent: T.green},
+  { key: "totalMessages", label: "Contact Messages", icon: Mail, accent: T.green },
 ];
 
 function StatCard({ label, value, accent, icon: Icon }) {
@@ -55,11 +55,24 @@ function StatCard({ label, value, accent, icon: Icon }) {
       }}
     >
       <div>
-        <p style={{ fontSize: 13, color: T.muted, margin: 0 }}>{label}</p>
-        <h2 style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, fontSize: 36, margin: "8px 0 0", color: T.ink }}>
+        <p style={{
+          fontSize: 13,
+          color: T.muted,
+          margin: 0
+        }}>{label}
+        </p>
+
+        <h2 style={{
+          fontFamily: "'Fraunces', serif",
+          fontWeight: 800,
+          fontSize: 36,
+          margin: "8px 0 0",
+          color: T.ink
+        }}>
           {value}
         </h2>
       </div>
+
       <div
         style={{
           width: 52,
@@ -98,16 +111,41 @@ export default function Dashboard() {
       `}</style>
 
       <Sidebar />
-      <div style={{ marginLeft: 264, background: T.cream, minHeight: "100vh" }}>
+      <div style={{ 
+               marginLeft: 264, 
+               background: T.cream, 
+               minHeight: "100vh" 
+              }}
+      >
         <Navbar />
 
         <div style={{ padding: "32px 28px" }}>
           <div style={{ marginBottom: 24 }}>
-            <p style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: T.terra, margin: "0 0 6px" }}>
+            <p style={{ 
+                   fontSize: 11.5, 
+                   fontWeight: 700, 
+                   letterSpacing: "0.14em", 
+                   textTransform: "uppercase", 
+                   color: T.terra, 
+                   margin: "0 0 6px" 
+                  }}>
               Overview
             </p>
-            <h1 style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 30, color: T.ink, margin: 0 }}>Dashboard</h1>
-            <p style={{ fontSize: 14, color: T.muted, margin: "6px 0 0" }}>
+
+            <h1 style={{ 
+                    fontFamily: "'Fraunces', serif", 
+                    fontWeight: 700, 
+                    fontSize: 30, 
+                    color: T.ink, 
+                    margin: 0 
+                  }}>Dashboard
+            </h1>
+
+            <p style={{ 
+                   fontSize: 14, 
+                   color: T.muted, 
+                   margin: "6px 0 0" 
+                  }}>
               A quick snapshot of everything happening across CareConnect.
             </p>
           </div>

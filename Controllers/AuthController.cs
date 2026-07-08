@@ -47,11 +47,22 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login(LoginDto dto)
     {
-        var user = _context.Users.FirstOrDefault(x =>
-            x.Email == dto.Email &&
-            x.PasswordHash == dto.Password);
+        var email = dto.Email.Trim().ToLower();
+        var password = dto.Password.Trim();
+
+        var user = _context.Users
+            .FirstOrDefault(x =>
+                x.Email.Trim().ToLower() == email);
 
         if (user == null)
+        {
+            return Unauthorized(new
+            {
+                Message = "Invalid email or password"
+            });
+        }
+
+        if (user.PasswordHash.Trim() != password)
         {
             return Unauthorized(new
             {

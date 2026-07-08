@@ -165,10 +165,17 @@ export default function Hospitals() {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: C.cream }}>
+    <div style={{ 
+             display: "flex", 
+             minHeight: "100vh", 
+             background: C.cream 
+            }}>
       <Sidebar />
 
-      <div style={{ marginLeft: 256, width: "100%" }}>
+      <div style={{ 
+               marginLeft: 256, 
+               width: "100%" 
+              }}>
         <Navbar />
 
         <div style={{ padding: "32px 36px" }}>
@@ -181,7 +188,14 @@ export default function Hospitals() {
             }}
           >
             <div>
-              <p style={{ ...body, color: C.terracotta, fontSize: 12, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 4px" }}>
+              <p style={{ 
+                     ...body, 
+                     color: C.terracotta, 
+                     fontSize: 12, 
+                     letterSpacing: 1.5, 
+                     textTransform: "uppercase", 
+                     margin: "0 0 4px" 
+                    }}>
                 Network
               </p>
               <h2 style={{ ...heading, fontSize: 30 }}>Hospitals</h2>
@@ -216,13 +230,44 @@ export default function Hospitals() {
                 {editingId ? "Update Hospital" : "New Hospital"}
               </h3>
 
-              <input style={inputStyle} name="name" value={form.name} onChange={handleChange} placeholder="Hospital name" />
-              <input style={inputStyle} name="address" value={form.address} onChange={handleChange} placeholder="Address" />
-              <input style={inputStyle} name="city" value={form.city} onChange={handleChange} placeholder="City" />
-              <input style={inputStyle} name="phone" value={form.phone} onChange={handleChange} placeholder="Phone" />
+              <input 
+                  style={inputStyle} 
+                  name="name" 
+                  value={form.name} 
+                  onChange={handleChange} 
+                  placeholder="Hospital name" 
+              />
+
+              <input 
+                  style={inputStyle} 
+                  name="address" 
+                  value={form.address} 
+                  onChange={handleChange} 
+                  placeholder="Address" 
+              />
+
+              <input 
+                  style={inputStyle} 
+                  name="city" 
+                  value={form.city} 
+                  onChange={handleChange} 
+                  placeholder="City" 
+              />
+
+              <input 
+                  style={inputStyle} 
+                  name="phone" 
+                  value={form.phone} 
+                  onChange={handleChange} 
+                  placeholder="Phone" 
+              />
 
               <button
-                style={{ ...primaryBtn, width: "100%", opacity: saving ? 0.7 : 1 }}
+                style={{ 
+                    ...primaryBtn, 
+                    width: "100%", 
+                    opacity: saving ? 0.7 : 1 
+                  }}
                 onClick={saveHospital}
                 disabled={saving}
               >
@@ -241,7 +286,11 @@ export default function Hospitals() {
                 textAlign: "center",
               }}
             >
-              <p style={{ ...body, color: C.muted, fontSize: 15 }}>
+              <p style={{ 
+                      ...body, 
+                      color: C.muted, 
+                      fontSize: 15 
+                    }}>
                 No hospitals yet. Add the first one to start building sessions and slots.
               </p>
             </div>
