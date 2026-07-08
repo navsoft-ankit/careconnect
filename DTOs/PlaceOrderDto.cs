@@ -1,5 +1,4 @@
 namespace HEALTHCARE.DTOs;
-
 public class PlaceOrderDto
 {
     public int ProductId { get; set; }

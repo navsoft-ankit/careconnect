@@ -1,5 +1,4 @@
 namespace HEALTHCARE.Models;
-
 public class DoctorAvailability
 {
     public int Id { get; set; }

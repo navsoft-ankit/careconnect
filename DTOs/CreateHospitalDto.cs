@@ -1,3 +1,4 @@
+namespace HEALTHCARE.DTOs;
 public class CreateHospitalDto
 {
     public string Name { get; set; }

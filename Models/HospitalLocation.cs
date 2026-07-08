@@ -1,5 +1,4 @@
 namespace HEALTHCARE.Models;
-
 public class HospitalLocation
 {
     public int Id { get; set; }

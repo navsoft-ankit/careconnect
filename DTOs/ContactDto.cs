@@ -1,5 +1,4 @@
 namespace HEALTHCARE.DTOs;
-
 public class ContactDto
 {
     public string Name { get; set; } = "";

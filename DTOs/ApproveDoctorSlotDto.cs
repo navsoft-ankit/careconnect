@@ -1,5 +1,4 @@
 namespace HEALTHCARE.DTOs;
-
 public class ApproveDoctorSlotDto
 {
     public int RequestId { get; set; }

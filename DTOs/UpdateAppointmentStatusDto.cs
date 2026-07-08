@@ -1,5 +1,4 @@
 namespace HEALTHCARE.DTOs;
-
 public class UpdateAppointmentStatusDto
 {
     public int AppointmentId { get; set; }

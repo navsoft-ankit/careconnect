@@ -1,5 +1,4 @@
 namespace HEALTHCARE.DTOs;
-
 public class CreateAmbulanceDto
 {
     public string DriverName { get; set; }

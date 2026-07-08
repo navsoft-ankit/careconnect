@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
 namespace HEALTHCARE.DTOs;
-
 public class CreateBlogDto
 {
     public string Title { get; set; } = "";
@@ -11,6 +10,5 @@ public class CreateBlogDto
     public string AuthorName { get; set; } = "";
     public int ReadTimeMinutes { get; set; }
     public bool IsPublished { get; set; }
-
     public IFormFile? Image { get; set; }
 }
