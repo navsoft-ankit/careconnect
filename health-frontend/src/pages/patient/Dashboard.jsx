@@ -43,6 +43,7 @@ export default function Dashboard() {
     const userName = localStorage.getItem("name") || "My Account";
     const [aboutOpen, setAboutOpen] = useState(false);
     const [reviews, setReviews] = useState([]);
+    const [openFaq, setOpenFaq] = useState(0); // first FAQ open by default; null hole shob closed
 
     // ── Testimonial carousel state (single full-width slide) ──
     const [testimonialPaused, setTestimonialPaused] = useState(false);
@@ -880,36 +881,85 @@ export default function Dashboard() {
                 </section>
 
                 {/* FAQ */}
-                <section className="max-w-4xl mx-auto px-6 lg:px-10 mt-24">
-                    <h2 className="text-4xl font-normal text-center mb-10">
-                        Frequently asked questions
-                    </h2>
+                <section className="w-full px-8 lg:px-16 xl:px-24 2xl:px-32 py-16">
+        
+                    <div className="text-center mb-10">
+                        <p className="font-[system-ui,sans-serif] text-sm uppercase tracking-widest text-[#B5562C] font-semibold mb-3">
+                            Got questions?
+                        </p>
+                        <h2 className="text-4xl font-normal">
+                            Frequently asked questions
+                        </h2>
+                    </div>
 
-                    <div className="space-y-4 font-[system-ui,sans-serif]">
+                    <div className="space-y-3 font-[system-ui,sans-serif]">
                         {[
                             {
                                 q: "How do I book an appointment?",
-                                a: "Select your preferred doctor and choose your available time slot.",
+                                a: "Select your preferred doctor from our list of specialists, choose an available time slot that fits your schedule, and confirm — you'll get an instant confirmation with all the visit details.",
                             },
                             {
                                 q: "Can I order medicines online?",
-                                a: "Yes, medicines can be ordered directly from our pharmacy.",
+                                a: "Yes, medicines can be ordered directly from our in-app pharmacy. Browse products, add them to your cart, and track your order status right from your dashboard.",
                             },
                             {
                                 q: "Is ambulance service available 24×7?",
-                                a: "Yes, emergency ambulance service is available all day.",
+                                a: "Yes, emergency ambulance service is available all day, every day. Just share your pickup location and we'll dispatch the nearest available vehicle immediately.",
                             },
-                        ].map((item, i) => (
-                            <div
-                                key={i}
-                                className="bg-white border border-[#E4DFD3] rounded-2xl p-6"
+                        ].map((item, i) => {
+                            const isOpen = openFaq === i;
+                            return (
+                                <div
+                                    key={i}
+                                    className={`bg-white rounded-2xl border transition-all overflow-hidden ${isOpen ? "border-[#16332B]/30 shadow-sm" : "border-[#E4DFD3]"
+                                        }`}
+                                >
+                                    <button
+                                        onClick={() => setOpenFaq(isOpen ? null : i)}
+                                        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+                                    >
+                                        <h3 className="font-medium text-lg font-[Georgia,serif]">
+                                            {item.q}
+                                        </h3>
+
+                                        <span
+                                            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
+                                                    ? "bg-[#16332B] text-white rotate-180"
+                                                    : "bg-[#F5F0E8] text-[#16332B]"
+                                                }`}
+                                        >
+                                            <ChevronDown size={16} />
+                                        </span>
+                                    </button>
+
+                                    <div
+                                        className="grid transition-all duration-300 ease-in-out"
+                                        style={{
+                                            gridTemplateRows: isOpen ? "1fr" : "0fr",
+                                        }}
+                                    >
+                                        <div className="overflow-hidden">
+                                            <p className="text-[#16332B]/65 leading-7 px-6 pb-6 -mt-1">
+                                                {item.a}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="text-center mt-10">
+                        <p className="text-[#16332B]/60 text-sm">
+                            Still have questions?{" "}
+                            <a
+
+                                href="/patient/Contacts"
+                                className="text-[#16332B] font-medium underline hover:text-[#B5562C] transition"
                             >
-                                <h3 className="font-medium text-lg font-[Georgia,serif]">
-                                    {item.q}
-                                </h3>
-                                <p className="text-[#16332B]/65 mt-3 leading-7">{item.a}</p>
-                            </div>
-                        ))}
+                                Contact our support team
+                            </a>
+                        </p>
                     </div>
                 </section>
 
@@ -946,10 +996,14 @@ export default function Dashboard() {
                         <div className="font-[system-ui,sans-serif]">
                             <h3 className="font-medium mb-4 font-[Georgia,serif] text-lg">Company</h3>
                             <ul className="space-y-2 text-white/60 text-[15px]">
-                                <li>About Us</li>
-                                <li>Privacy Policy</li>
+                                <li>
+                                    <a href="/patient/AboutUs">About Us</a>
+                                </li>
+                                <li>
+                                    <a  href ="/patient/Contacts"> Support</a>
+                                </li>
                                 <li>Terms & Conditions</li>
-                                <li>Support</li>
+                              
                             </ul>
                         </div>
 
