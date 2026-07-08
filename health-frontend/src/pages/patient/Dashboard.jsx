@@ -26,6 +26,15 @@ function getStockImage(doctorId) {
     const idx = doctorId % STOCK_IMAGES.length;
     return STOCK_IMAGES[idx];
 }
+
+function getOrderStatusStyle(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes("deliver")) return { bg: "#EBF2E3", text: "#3E7C59" };
+    if (s.includes("cancel") || s.includes("fail")) return { bg: "#FEE2E2", text: "#DC2626" };
+    if (s.includes("ship") || s.includes("transit") || s.includes("dispatch")) return { bg: "#DBEAFE", text: "#1D4ED8" };
+    if (s.includes("pending") || s.includes("process")) return { bg: "#FEF3C7", text: "#D97706" };
+    return { bg: "#F5F0E8", text: "#16332B" };
+}
 function displayDoctorName(name) {
     if (!name) return "";
     return /^dr\.?\s/i.test(name) ? name : `Dr. ${name}`;
@@ -43,7 +52,7 @@ export default function Dashboard() {
     const userName = localStorage.getItem("name") || "My Account";
     const [aboutOpen, setAboutOpen] = useState(false);
     const [reviews, setReviews] = useState([]);
-    const [openFaq, setOpenFaq] = useState(0); // first FAQ open by default; null hole shob closed
+    const [openFaq, setOpenFaq] = useState(null);
 
     // ── Testimonial carousel state (single full-width slide) ──
     const [testimonialPaused, setTestimonialPaused] = useState(false);
@@ -135,7 +144,12 @@ export default function Dashboard() {
                         </div>
 
                         <nav className="hidden lg:flex items-center gap-9 font-[system-ui,sans-serif] text-[15px] text-[#16332B]/80">
-                            <a href="/patient/products" className="hover:text-[#16332B] transition">Medicines</a>
+                            <a
+                                href="/patient/products"
+                                className="hover:text-[#16332B] transition"
+                            >
+                                Medicines
+                            </a>
                             <a
                                 href={token ? "/patient/appointments" : "/login"}
                                 className="hover:text-[#16332B] transition"
@@ -148,8 +162,18 @@ export default function Dashboard() {
                             >
                                 Orders
                             </a>
-                            <a href="/patient/EmergencyInfo" className="hover:text-[#16332B] transition">Emergency Info</a>
-                            <a href="/patient/Locations" className="hover:text-[#16332B] transition">Locations</a>
+                            <a
+                                href="/patient/EmergencyInfo"
+                                className="hover:text-[#16332B] transition"
+                            >
+                                Emergency Info
+                            </a>
+                            <a
+                                href="/patient/Locations"
+                                className="hover:text-[#16332B] transition"
+                            >
+                                Locations
+                            </a>
 
                             <div
                                 className="relative"
@@ -243,6 +267,7 @@ export default function Dashboard() {
                             <a href="/patient/appointments">Appoinments</a>
                             <a href="/patient/AboutUs">About Us</a>
                             <a href="/patient/profile" className="font-medium">Profile</a>
+
                             <div className="hidden lg:flex items-center gap-4">
 
                                 {token ? (
@@ -310,6 +335,7 @@ export default function Dashboard() {
                             >
                                 Book Appointment
                             </button>
+
                             <button
                                 onClick={() =>
                                     token
@@ -456,6 +482,7 @@ export default function Dashboard() {
                                 desc: "Book appointments with trusted specialists.",
                                 accent: "#16332B",
                             },
+
                             {
                                 href: "/patient/products",
                                 Icon: Pill,
@@ -463,6 +490,7 @@ export default function Dashboard() {
                                 desc: "Order medicines at affordable prices.",
                                 accent: "#3E7C59",
                             },
+
                             {
                                 href: "/patient/ambulance",
                                 Icon: Ambulance,
@@ -470,6 +498,7 @@ export default function Dashboard() {
                                 desc: "Emergency ambulance booking, anytime.",
                                 accent: "#B5562C",
                             },
+
                             {
                                 href: "/patient/appointments",
                                 Icon: CalendarCheck,
@@ -882,7 +911,7 @@ export default function Dashboard() {
 
                 {/* FAQ */}
                 <section className="w-full px-8 lg:px-16 xl:px-24 2xl:px-32 py-16">
-        
+
                     <div className="text-center mb-10">
                         <p className="font-[system-ui,sans-serif] text-sm uppercase tracking-widest text-[#B5562C] font-semibold mb-3">
                             Got questions?
@@ -924,8 +953,8 @@ export default function Dashboard() {
 
                                         <span
                                             className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isOpen
-                                                    ? "bg-[#16332B] text-white rotate-180"
-                                                    : "bg-[#F5F0E8] text-[#16332B]"
+                                                ? "bg-[#16332B] text-white rotate-180"
+                                                : "bg-[#F5F0E8] text-[#16332B]"
                                                 }`}
                                         >
                                             <ChevronDown size={16} />
@@ -1000,10 +1029,12 @@ export default function Dashboard() {
                                     <a href="/patient/AboutUs">About Us</a>
                                 </li>
                                 <li>
-                                    <a  href ="/patient/Contacts"> Support</a>
+                                    <a href="/patient/Contacts"> Support</a>
                                 </li>
-                                <li>Terms & Conditions</li>
-                              
+                                <li>
+                                    Terms & Conditions
+                                </li>
+
                             </ul>
                         </div>
 
